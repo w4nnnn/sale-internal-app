@@ -32,6 +32,10 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { cn } from "@/lib/utils";
+import { CalendarIcon } from "lucide-react";
 
 const aplikasiSchema = z
 	.object({
@@ -39,7 +43,7 @@ const aplikasiSchema = z
 			.string({ required_error: "Nama aplikasi wajib diisi." })
 			.trim()
 			.min(1, "Nama aplikasi wajib diisi."),
-		tiपे_app: z.enum(["demo", "pelanggan", "admin"], {
+		tipe_app: z.enum(["demo", "pelanggan", "admin"], {
 			required_error: "Tipe aplikasi harus dipilih.",
 		}),
 		deskripsi: z.string().trim().optional(),
@@ -115,8 +119,8 @@ const defaultValues = {
 	link_web: "",
 	path_ios: "",
 	path_android: "",
-	pelanggan_id: "",
-	user_id: "",
+	pelanggan_id: null,
+	user_id: null,
 	tanggal_mulai: "",
 	tanggal_habis: "",
 };
@@ -126,6 +130,43 @@ const tipeAppOptions = [
 	{ value: "pelanggan", label: "Pelanggan" },
 	{ value: "admin", label: "Admin" },
 ];
+
+const dateFormatter = new Intl.DateTimeFormat("id-ID", {
+	day: "2-digit",
+	month: "long",
+	year: "numeric",
+});
+
+const parseDateString = (value) => {
+	if (!value) {
+		return undefined;
+	}
+
+	const parts = value.split("-");
+	if (parts.length !== 3) {
+		return undefined;
+	}
+
+	const [year, month, day] = parts.map((part) => Number(part));
+
+	if (Number.isNaN(year) || Number.isNaN(month) || Number.isNaN(day)) {
+		return undefined;
+	}
+
+	return new Date(year, month - 1, day);
+};
+
+const formatDateInput = (date) => {
+	if (!(date instanceof Date) || Number.isNaN(date.getTime())) {
+		return "";
+	}
+
+	const year = date.getFullYear();
+	const month = String(date.getMonth() + 1).padStart(2, "0");
+	const day = String(date.getDate()).padStart(2, "0");
+
+	return `${year}-${month}-${day}`;
+};
 
 export function FormAplikasiDialog({
 	onSuccess,
@@ -185,8 +226,8 @@ export function FormAplikasiDialog({
 				link_web: initialData.link_web ?? "",
 				path_ios: initialData.path_ios ?? "",
 				path_android: initialData.path_android ?? "",
-				pelanggan_id: "",
-				user_id: "",
+				pelanggan_id: null,
+				user_id: null,
 				tanggal_mulai: "",
 				tanggal_habis: "",
 			});
@@ -197,8 +238,8 @@ export function FormAplikasiDialog({
 
 	useEffect(() => {
 		if (tipeApp !== "pelanggan") {
-			form.setValue("pelanggan_id", "");
-			form.setValue("user_id", "");
+			form.setValue("pelanggan_id", null);
+			form.setValue("user_id", null);
 			form.setValue("tanggal_mulai", "");
 			form.setValue("tanggal_habis", "");
 			setInitialLicenseLoaded(false);
@@ -286,8 +327,14 @@ export function FormAplikasiDialog({
 				const license = payload?.data;
 
 				if (!ignore && license) {
-					form.setValue("pelanggan_id", String(license.pelanggan_id ?? ""));
-					form.setValue("user_id", String(license.user_id ?? ""));
+					form.setValue(
+						"pelanggan_id",
+						license.pelanggan_id != null ? String(license.pelanggan_id) : null
+					);
+					form.setValue(
+						"user_id",
+						license.user_id != null ? String(license.user_id) : null
+					);
 					form.setValue("tanggal_mulai", license.tanggal_mulai ?? "");
 					form.setValue("tanggal_habis", license.tanggal_habis ?? "");
 				}
@@ -455,7 +502,7 @@ export function FormAplikasiDialog({
 										<FormItem>
 											<FormLabel>Pelanggan</FormLabel>
 											<Select
-												value={field.value || undefined}
+												value={field.value ?? ""}
 												onValueChange={field.onChange}
 												disabled={
 												isFetchingOptions || pelangganSelectOptions.length === 0
@@ -496,7 +543,7 @@ export function FormAplikasiDialog({
 										<FormItem>
 											<FormLabel>User Penanggung Jawab</FormLabel>
 											<Select
-												value={field.value || undefined}
+												value={field.value ?? ""}
 												onValueChange={field.onChange}
 												disabled={isFetchingOptions || userSelectOptions.length === 0}
 											>
@@ -535,29 +582,91 @@ export function FormAplikasiDialog({
 								<FormField
 									control={form.control}
 									name="tanggal_mulai"
-									render={({ field }) => (
-										<FormItem>
-											<FormLabel>Tanggal Mulai Lisensi</FormLabel>
-											<FormControl>
-												<Input type="date" {...field} value={field.value || ""} />
-											</FormControl>
-											<FormMessage />
-										</FormItem>
-									)}
+									render={({ field }) => {
+										const selectedDate = parseDateString(field.value);
+										return (
+											<FormItem className="flex flex-col">
+												<FormLabel>Tanggal Mulai Lisensi</FormLabel>
+												<Popover>
+													<PopoverTrigger asChild>
+														<FormControl>
+															<Button
+																type="button"
+																variant="outline"
+																className={cn(
+																	"justify-start text-left font-normal",
+																	!field.value && "text-muted-foreground"
+																)}
+															>
+																<CalendarIcon className="mr-2 size-4" />
+																{selectedDate
+																	? dateFormatter.format(selectedDate)
+																	: "Pilih tanggal mulai"}
+															</Button>
+														</FormControl>
+													</PopoverTrigger>
+													<PopoverContent align="start" className="w-auto p-0" sideOffset={8}>
+														<Calendar
+															mode="single"
+															selected={selectedDate}
+															onSelect={(date) => {
+																const nextValue = formatDateInput(date);
+																field.onChange(nextValue);
+																field.onBlur();
+															}}
+															initialFocus
+														/>
+													</PopoverContent>
+												</Popover>
+												<FormMessage />
+											</FormItem>
+										);
+									}}
 								/>
 
 								<FormField
 									control={form.control}
 									name="tanggal_habis"
-									render={({ field }) => (
-										<FormItem>
-											<FormLabel>Tanggal Habis Lisensi</FormLabel>
-											<FormControl>
-												<Input type="date" {...field} value={field.value || ""} />
-											</FormControl>
-											<FormMessage />
-										</FormItem>
-									)}
+									render={({ field }) => {
+										const selectedDate = parseDateString(field.value);
+										return (
+											<FormItem className="flex flex-col">
+												<FormLabel>Tanggal Habis Lisensi</FormLabel>
+												<Popover>
+													<PopoverTrigger asChild>
+														<FormControl>
+															<Button
+																type="button"
+																variant="outline"
+																className={cn(
+																	"justify-start text-left font-normal",
+																	!field.value && "text-muted-foreground"
+																)}
+															>
+																<CalendarIcon className="mr-2 size-4" />
+																{selectedDate
+																	? dateFormatter.format(selectedDate)
+																	: "Pilih tanggal habis"}
+															</Button>
+														</FormControl>
+													</PopoverTrigger>
+													<PopoverContent align="start" className="w-auto p-0" sideOffset={8}>
+														<Calendar
+															mode="single"
+															selected={selectedDate}
+															onSelect={(date) => {
+																const nextValue = formatDateInput(date);
+																field.onChange(nextValue);
+																field.onBlur();
+															}}
+															initialFocus
+														/>
+													</PopoverContent>
+												</Popover>
+												<FormMessage />
+											</FormItem>
+										);
+									}}
 								/>
 							</div>
 						)}

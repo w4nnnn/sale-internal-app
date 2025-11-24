@@ -11,11 +11,11 @@ export default async function DashboardAdminPage() {
     redirect("/login");
   }
 
-  if (session.user.role === "sales") {
+  if (session.user.role === "admin") {
     redirect("/dashboard");
   }
 
-  if (session.user.role !== "admin") {
+  if (session.user.role !== "super-admin") {
     redirect("/login");
   }
 

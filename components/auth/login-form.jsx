@@ -12,7 +12,7 @@ import { Label } from "@/components/ui/label";
 
 export function LoginForm() {
   const router = useRouter();
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState(null);
   const [isPending, startTransition] = useTransition();
@@ -23,7 +23,7 @@ export function LoginForm() {
 
     startTransition(async () => {
       const result = await signIn("credentials", {
-        email,
+        username,
         password,
         redirect: false,
         callbackUrl: "/post-login",
@@ -53,14 +53,14 @@ export function LoginForm() {
         <CardContent>
           <form className="grid gap-6" onSubmit={handleSubmit}>
             <div className="grid gap-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="username">Username</Label>
               <Input
-                id="email"
-                type="email"
-                value={email}
-                autoComplete="email"
-                onChange={(event) => setEmail(event.target.value)}
-                placeholder="sales@example.com"
+                id="username"
+                type="text"
+                value={username}
+                autoComplete="username"
+                onChange={(event) => setUsername(event.target.value)}
+                placeholder="admin"
                 required
               />
             </div>

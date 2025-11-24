@@ -1,18 +1,17 @@
--- Mengaktifkan dukungan Foreign Key di SQLite
 PRAGMA foreign_keys = ON;
 
 -- -----------------------------------------------------
 -- Tabel: Users
--- Menggantikan tabel 'Sales'
--- Menyimpan data user (sales, admin, dll) sekaligus untuk login
+-- Menyimpan data user (admin, super-admin, dll) sekaligus untuk login
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS Users (
   user_id INTEGER PRIMARY KEY AUTOINCREMENT,
   nama_user TEXT NOT NULL,
-  email_user TEXT NOT NULL UNIQUE,  -- Bisa digunakan untuk username login
+  username TEXT NOT NULL UNIQUE,   -- Username khusus untuk login
+  email_user TEXT NOT NULL UNIQUE,  -- Digunakan untuk kontak/email pemberitahuan
   telepon_user TEXT,
   password_hash TEXT NOT NULL,      -- HARUS disimpan dalam bentuk hash (misal: bcrypt)
-  role TEXT NOT NULL DEFAULT 'sales'  -- Misal: 'sales', 'admin'
+  role TEXT NOT NULL DEFAULT 'admin'  -- Role akses: 'admin' atau 'super-admin'
 );
 
 -- -----------------------------------------------------
@@ -58,13 +57,13 @@ CREATE TABLE IF NOT EXISTS Lisensi (
   -- Foreign Key ke tabel Pelanggan
   pelanggan_id INTEGER NOT NULL,
   
-  -- Foreign Key ke tabel Users (user yg bertanggung jawab, sblmnya sales_id)
+  -- Foreign Key ke tabel Users (user yang bertanggung jawab)
   user_id INTEGER NOT NULL,
   
   tanggal_mulai DATE NOT NULL,
   tanggal_habis DATE NOT NULL,
   
-  status_lisensi TEXT NOT NULL DEFAULT 'AktIF', -- Misal: 'Aktif', 'Habis', 'Dibatalkan'
+  status_lisensi TEXT NOT NULL DEFAULT 'Aktif', -- Misal: 'Aktif', 'Habis', 'Dibatalkan'
   
   -- Kolom untuk penanda pengingat (0 = Belum, 1 = Sudah)
   -- Ini akan di-update oleh aplikasi Anda

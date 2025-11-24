@@ -13,33 +13,42 @@ const db = new Database(dbPath);
 
 const users = [
 	{
-		nama_user: "Admin Utama",
-		email_user: "admin@example.com",
+		nama_user: "Super Admin",
+		username: "superadmin",
+		email_user: "superadmin@example.com",
 		telepon_user: null,
-		password: "Admin123!",
-		role: "admin",
+		password: "SuperAdmin123",
+		role: "super-admin",
 	},
 	{
-		nama_user: "Sales Demo",
-		email_user: "sales@example.com",
+		nama_user: "Admin Demo",
+		username: "admin",
+		email_user: "admin@example.com",
 		telepon_user: null,
-		password: "Sales123!",
-		role: "sales",
+		password: "Admin123",
+		role: "admin",
 	},
 ];
 
 async function seed() {
 	try {
 		const insert = db.prepare(
-			`INSERT INTO Users (nama_user, email_user, telepon_user, password_hash, role)
-			 VALUES (@nama_user, @email_user, @telepon_user, @password_hash, @role)`
+			`INSERT INTO Users (nama_user, username, email_user, telepon_user, password_hash, role)
+			 VALUES (@nama_user, @username, @email_user, @telepon_user, @password_hash, @role)`
 		);
 
+		const findByUsername = db.prepare(`SELECT user_id FROM Users WHERE LOWER(username) = LOWER(?)`);
 		const findByEmail = db.prepare(`SELECT user_id FROM Users WHERE LOWER(email_user) = LOWER(?)`);
 
 		for (const user of users) {
-			const existing = findByEmail.get(user.email_user);
-			if (existing) {
+			const existingByUsername = findByUsername.get(user.username);
+			if (existingByUsername) {
+				console.log(`Lewat: ${user.username} sudah ada.`);
+				continue;
+			}
+
+			const existingByEmail = findByEmail.get(user.email_user);
+			if (existingByEmail) {
 				console.log(`Lewat: ${user.email_user} sudah ada.`);
 				continue;
 			}
@@ -47,12 +56,13 @@ async function seed() {
 			const password_hash = await bcrypt.hash(user.password, 10);
 			insert.run({
 				nama_user: user.nama_user,
+				username: user.username,
 				email_user: user.email_user,
 				telepon_user: user.telepon_user,
 				password_hash,
 				role: user.role,
 			});
-			console.log(`Tambah: ${user.email_user} (${user.role}).`);
+			console.log(`Tambah: ${user.username} (${user.role}).`);
 		}
 
 		console.log("Seeding user selesai.");

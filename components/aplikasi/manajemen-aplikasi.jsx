@@ -26,6 +26,7 @@ import {
 } from "@/components/ui/alert-dialog";
 
 import { FormAplikasiDialog } from "./form-aplikasi";
+import DetailAplikasiDialog from "./detail-aplikasi";
 
 export function ManajemenAplikasi() {
 	const [data, setData] = useState([]);
@@ -36,6 +37,8 @@ export function ManajemenAplikasi() {
 	const [selectedAplikasi, setSelectedAplikasi] = useState(null);
 	const [deleteTarget, setDeleteTarget] = useState(null);
 	const [isDeleting, setIsDeleting] = useState(false);
+	const [detailOpen, setDetailOpen] = useState(false);
+	const [detailAplikasi, setDetailAplikasi] = useState(null);
 
 	const fetchData = useCallback(async () => {
 		setIsLoading(true);
@@ -170,7 +173,14 @@ export function ManajemenAplikasi() {
 							renderStatusRow("Belum ada data aplikasi.")}
 						{!isLoading && !error &&
 							data.map((item, index) => (
-								<TableRow key={item.app_id ?? `${item.nama_app}-${index}`}>
+								<TableRow
+									key={item.app_id ?? `${item.nama_app}-${index}`}
+									onClick={() => {
+										setDetailAplikasi(item);
+										setDetailOpen(true);
+									}}
+									className="cursor-pointer transition-colors hover:bg-muted/50"
+								>
 									<TableCell>{index + 1}</TableCell>
 									<TableCell className="font-medium">{item.nama_app}</TableCell>
 									<TableCell className="capitalize">{item.tipe_app}</TableCell>
@@ -183,6 +193,7 @@ export function ManajemenAplikasi() {
 												href={item.link_web}
 												target="_blank"
 												rel="noopener noreferrer"
+												onClick={(event) => event.stopPropagation()}
 												className="inline-flex items-center gap-1 text-primary hover:underline"
 											>
 												<ExternalLinkIcon className="size-4" />
@@ -200,7 +211,8 @@ export function ManajemenAplikasi() {
 												type="button"
 												variant="ghost"
 												size="icon"
-												onClick={() => {
+												onClick={(event) => {
+													event.stopPropagation();
 													setDialogMode("edit");
 													setSelectedAplikasi(item);
 													setDialogOpen(true);
@@ -212,7 +224,10 @@ export function ManajemenAplikasi() {
 												type="button"
 												variant="ghost"
 												size="icon"
-												onClick={() => setDeleteTarget(item)}
+												onClick={(event) => {
+													event.stopPropagation();
+													setDeleteTarget(item);
+												}}
 											>
 												<TrashIcon className="size-4" />
 											</Button>
@@ -223,6 +238,17 @@ export function ManajemenAplikasi() {
 					</TableBody>
 				</Table>
 			</div>
+
+			<DetailAplikasiDialog
+				open={detailOpen}
+				aplikasi={detailAplikasi}
+				onOpenChange={(value) => {
+					setDetailOpen(value);
+					if (!value) {
+						setDetailAplikasi(null);
+					}
+				}}
+			/>
 
 			<FormAplikasiDialog
 				open={dialogOpen}

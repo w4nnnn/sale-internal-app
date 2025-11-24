@@ -65,7 +65,7 @@ export function DashboardShell({
                   <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                     Internal App
                   </p>
-                  <p className="text-sm font-medium text-foreground">Sales Dashboard</p>
+                  <p className="text-sm font-medium text-foreground">Admin Dashboard</p>
                 </div>
               </div>
             </div>
@@ -102,7 +102,10 @@ export function DashboardShell({
               <p className="font-semibold text-foreground">{user?.name ?? "Pengguna"}</p>
               <p className="text-muted-foreground">
                 {user?.role
-                  ? user.role.charAt(0).toUpperCase() + user.role.slice(1)
+                  ? user.role
+                      .split("-")
+                      .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+                      .join(" ")
                   : "Role belum ditetapkan"}
               </p>
             </div>

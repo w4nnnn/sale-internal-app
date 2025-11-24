@@ -14,7 +14,8 @@ const parseAppId = (params) => {
   return appId;
 };
 
-export async function GET(request, { params }) {
+export async function GET(request, context) {
+  const params = context?.params ? await context.params : undefined;
   const appId = parseAppId(params);
 
   if (!appId) {
