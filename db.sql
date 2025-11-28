@@ -2,7 +2,7 @@ PRAGMA foreign_keys = ON;
 
 -- -----------------------------------------------------
 -- Tabel: Users
--- Menyimpan data user (admin, super-admin, dll) sekaligus untuk login
+-- Menyimpan data user (agen, admin, dll) sekaligus untuk login
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS Users (
   user_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS Users (
   email_user TEXT NOT NULL UNIQUE,  -- Digunakan untuk kontak/email pemberitahuan
   telepon_user TEXT,
   password_hash TEXT NOT NULL,      -- HARUS disimpan dalam bentuk hash (misal: bcrypt)
-  role TEXT NOT NULL DEFAULT 'admin'  -- Role akses: 'admin' atau 'super-admin'
+  role TEXT NOT NULL DEFAULT 'agen'  -- Role akses: 'agen' atau 'admin'
 );
 
 -- -----------------------------------------------------

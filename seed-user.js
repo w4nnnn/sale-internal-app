@@ -18,7 +18,7 @@ const users = [
 		email_user: "superadmin@example.com",
 		telepon_user: null,
 		password: "SuperAdmin123",
-		role: "super-admin",
+		role: "admin",
 	},
 	{
 		nama_user: "Admin Demo",
@@ -26,7 +26,7 @@ const users = [
 		email_user: "admin@example.com",
 		telepon_user: null,
 		password: "Admin123",
-		role: "admin",
+		role: "agen",
 	},
 ];
 

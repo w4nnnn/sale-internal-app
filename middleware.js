@@ -7,26 +7,26 @@ export default withAuth(
     const role = req.nextauth.token?.role;
 
     if (pathname === "/login" && role) {
-      if (role === "super-admin") {
+      if (role === "admin") {
         return NextResponse.redirect(new URL("/dashboard-admin", req.url));
       }
-      if (role === "admin") {
+      if (role === "agen") {
         return NextResponse.redirect(new URL("/dashboard", req.url));
       }
       return NextResponse.next();
     }
 
     if (pathname.startsWith("/dashboard-admin")) {
-      if (role !== "super-admin") {
-        const redirectTarget = role === "admin" ? "/dashboard" : "/login";
+      if (role !== "admin") {
+        const redirectTarget = role === "agen" ? "/dashboard" : "/login";
         return NextResponse.redirect(new URL(redirectTarget, req.url));
       }
       return NextResponse.next();
     }
 
     if (pathname.startsWith("/dashboard")) {
-      if (role !== "admin") {
-        const redirectTarget = role === "super-admin" ? "/dashboard-admin" : "/login";
+      if (role !== "agen") {
+        const redirectTarget = role === "admin" ? "/dashboard-admin" : "/login";
         return NextResponse.redirect(new URL(redirectTarget, req.url));
       }
     }

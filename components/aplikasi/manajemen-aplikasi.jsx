@@ -1,19 +1,18 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { ExternalLinkIcon, PencilIcon, PlusIcon, RefreshCwIcon, TrashIcon } from "lucide-react";
+import {
+	ExternalLinkIcon,
+	LayoutDashboardIcon,
+	PencilIcon,
+	PlusIcon,
+	RefreshCwIcon,
+	TrashIcon,
+} from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
-import {
-	Table,
-	TableBody,
-	TableCaption,
-	TableCell,
-	TableHead,
-	TableHeader,
-	TableRow,
-} from "@/components/ui/table";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -28,7 +27,7 @@ import {
 import { FormAplikasiDialog } from "./form-aplikasi";
 import DetailAplikasiDialog from "./detail-aplikasi";
 
-export function ManajemenAplikasi() {
+export function ManajemenAplikasi({ currentUser }) {
 	const [data, setData] = useState([]);
 	const [isLoading, setIsLoading] = useState(false);
 	const [error, setError] = useState(null);
@@ -39,6 +38,7 @@ export function ManajemenAplikasi() {
 	const [isDeleting, setIsDeleting] = useState(false);
 	const [detailOpen, setDetailOpen] = useState(false);
 	const [detailAplikasi, setDetailAplikasi] = useState(null);
+	const canManage = currentUser?.role === "admin";
 
 	const fetchData = useCallback(async () => {
 		setIsLoading(true);
@@ -127,28 +127,28 @@ export function ManajemenAplikasi() {
 	return (
 		<section className="space-y-6">
 			<header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-				<div className="space-y-1">
-					<h1 className="text-2xl font-semibold tracking-tight">Manajemen Aplikasi</h1>
-					<p className="text-muted-foreground text-sm">
-						Kelola daftar aplikasi dan simpan file distribusi untuk tiap platform.
-					</p>
+				<div className="flex items-center gap-2 text-muted-foreground">
+					<LayoutDashboardIcon className="size-5" />
+					<span>Kelola daftar aplikasi beserta detail distribusinya.</span>
 				</div>
 				<div className="flex flex-wrap items-center gap-2">
 					<Button type="button" variant="outline" onClick={fetchData} disabled={isLoading}>
 						<RefreshCwIcon className="size-4" />
 						Muat Ulang
 					</Button>
-					<Button
-						type="button"
-						onClick={() => {
-							setDialogMode("create");
-							setSelectedAplikasi(null);
-							setDialogOpen(true);
-						}}
-					>
-						<PlusIcon className="size-4" />
-						Tambah Aplikasi
-					</Button>
+					{canManage ? (
+						<Button
+							type="button"
+							onClick={() => {
+								setDialogMode("create");
+								setSelectedAplikasi(null);
+								setDialogOpen(true);
+							}}
+						>
+							<PlusIcon className="size-4" />
+							Tambah Aplikasi
+						</Button>
+					) : null}
 				</div>
 			</header>
 
@@ -206,32 +206,36 @@ export function ManajemenAplikasi() {
 									<TableCell>{item.path_ios ?? "-"}</TableCell>
 									<TableCell>{item.path_android ?? "-"}</TableCell>
 									<TableCell className="text-center">
-										<div className="flex justify-center gap-2">
-											<Button
-												type="button"
-												variant="ghost"
-												size="icon"
-												onClick={(event) => {
-													event.stopPropagation();
-													setDialogMode("edit");
-													setSelectedAplikasi(item);
-													setDialogOpen(true);
-												}}
-											>
-												<PencilIcon className="size-4" />
-											</Button>
-											<Button
-												type="button"
-												variant="ghost"
-												size="icon"
-												onClick={(event) => {
-													event.stopPropagation();
-													setDeleteTarget(item);
-												}}
-											>
-												<TrashIcon className="size-4" />
-											</Button>
-										</div>
+										{canManage ? (
+											<div className="flex justify-center gap-2">
+												<Button
+													type="button"
+													variant="ghost"
+													size="icon"
+													onClick={(event) => {
+														event.stopPropagation();
+														setDialogMode("edit");
+														setSelectedAplikasi(item);
+														setDialogOpen(true);
+													}}
+												>
+													<PencilIcon className="size-4" />
+												</Button>
+												<Button
+													type="button"
+													variant="ghost"
+													size="icon"
+													onClick={(event) => {
+														event.stopPropagation();
+														setDeleteTarget(item);
+													}}
+												>
+													<TrashIcon className="size-4" />
+												</Button>
+											</div>
+										) : (
+											<span className="text-muted-foreground text-sm">-</span>
+										)}
 									</TableCell>
 								</TableRow>
 							))}

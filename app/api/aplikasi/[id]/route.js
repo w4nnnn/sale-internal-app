@@ -1,5 +1,8 @@
 import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+
 import conn from "@/lib/conn";
+import { authOptions } from "@/lib/auth";
 import { aplikasiBodySchema, normalizeNullable } from "../route";
 
 const { db, run, get } = conn;
@@ -15,8 +18,23 @@ const parseAppId = (params) => {
   return id;
 };
 
-export async function PUT(request, { params }) {
-  const appId = parseAppId(params);
+export async function PUT(request, context) {
+  const paramsValue = context?.params;
+  const resolvedParams = paramsValue && typeof paramsValue.then === "function"
+    ? await paramsValue
+    : paramsValue;
+
+  const session = await getServerSession(authOptions);
+
+  if (!session?.user) {
+    return NextResponse.json({ message: "Tidak terautentikasi." }, { status: 401 });
+  }
+
+  if (session.user.role !== "admin") {
+    return NextResponse.json({ message: "Akses ditolak." }, { status: 403 });
+  }
+
+  const appId = parseAppId(resolvedParams);
 
   if (!appId) {
     return NextResponse.json({ message: "ID aplikasi tidak valid." }, { status: 400 });
@@ -145,8 +163,23 @@ const toNumberOrNull = (value) => {
   return Number.isNaN(numeric) ? null : numeric;
 };
 
-export async function DELETE(request, { params }) {
-  const appId = parseAppId(params);
+export async function DELETE(request, context) {
+  const paramsValue = context?.params;
+  const resolvedParams = paramsValue && typeof paramsValue.then === "function"
+    ? await paramsValue
+    : paramsValue;
+
+  const session = await getServerSession(authOptions);
+
+  if (!session?.user) {
+    return NextResponse.json({ message: "Tidak terautentikasi." }, { status: 401 });
+  }
+
+  if (session.user.role !== "admin") {
+    return NextResponse.json({ message: "Akses ditolak." }, { status: 403 });
+  }
+
+  const appId = parseAppId(resolvedParams);
 
   if (!appId) {
     return NextResponse.json({ message: "ID aplikasi tidak valid." }, { status: 400 });

@@ -46,6 +46,8 @@ export function DetailAplikasiDialog({ aplikasi, open, onOpenChange }) {
 	const [isLoadingLicense, setIsLoadingLicense] = useState(false);
 	const [licenseError, setLicenseError] = useState(null);
 	const [license, setLicense] = useState(null);
+	const [userName, setUserName] = useState(null);
+	const [pelangganName, setPelangganName] = useState(null);
 
 	const appId = aplikasi?.app_id;
 
@@ -53,6 +55,8 @@ export function DetailAplikasiDialog({ aplikasi, open, onOpenChange }) {
 		if (!open || !appId || aplikasi?.tipe_app !== "pelanggan") {
 			setLicense(null);
 			setLicenseError(null);
+			setUserName(null);
+			setPelangganName(null);
 			return;
 		}
 
@@ -61,6 +65,28 @@ export function DetailAplikasiDialog({ aplikasi, open, onOpenChange }) {
 		const fetchLicense = async () => {
 			setIsLoadingLicense(true);
 			setLicenseError(null);
+
+			const fetchNames = async (licenseData) => {
+				try {
+					const [usersRes, pelangganRes] = await Promise.all([
+						fetch('/api/users'),
+						fetch('/api/pelanggan')
+					]);
+
+					if (usersRes.ok && pelangganRes.ok) {
+						const usersPayload = await usersRes.json();
+						const pelangganPayload = await pelangganRes.json();
+
+						const user = usersPayload.data?.find(u => u.user_id === licenseData.user_id);
+						const pelanggan = pelangganPayload.data?.find(p => p.pelanggan_id === licenseData.pelanggan_id);
+
+						setUserName(user?.nama_user || 'Tidak ditemukan');
+						setPelangganName(pelanggan?.nama_pelanggan || 'Tidak ditemukan');
+					}
+				} catch (error) {
+					// Ignore errors for names
+				}
+			};
 
 			try {
 				const response = await fetch(`/api/aplikasi/${appId}/license`);
@@ -79,6 +105,9 @@ export function DetailAplikasiDialog({ aplikasi, open, onOpenChange }) {
 				const payload = await response.json();
 				if (!ignore) {
 					setLicense(payload?.data ?? null);
+					if (payload?.data) {
+						fetchNames(payload.data);
+					}
 				}
 			} catch (error) {
 				if (!ignore) {
@@ -136,15 +165,6 @@ export function DetailAplikasiDialog({ aplikasi, open, onOpenChange }) {
 					<p className="text-muted-foreground text-sm">Data aplikasi tidak tersedia.</p>
 				) : (
 					<div className="space-y-6">
-						<div className="space-y-1">
-							<h3 className="text-lg font-semibold text-foreground">{aplikasi.nama_app}</h3>
-							{aplikasi.tipe_app ? (
-								<Badge variant="outline" className="capitalize">
-									{aplikasi.tipe_app}
-								</Badge>
-							) : null}
-						</div>
-
 						<Separator />
 
 						<dl className="grid gap-4 sm:grid-cols-2">
@@ -192,7 +212,7 @@ export function DetailAplikasiDialog({ aplikasi, open, onOpenChange }) {
 												Pelanggan
 											</dt>
 											<dd className="text-sm text-foreground">
-												#{license.pelanggan_id}
+												{pelangganName || license.pelanggan_id}
 											</dd>
 										</div>
 										<div>
@@ -200,7 +220,7 @@ export function DetailAplikasiDialog({ aplikasi, open, onOpenChange }) {
 												User Penanggung Jawab
 											</dt>
 											<dd className="text-sm text-foreground">
-												#{license.user_id}
+												{userName || license.user_id}
 											</dd>
 										</div>
 										<div>

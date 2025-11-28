@@ -10,11 +10,11 @@ export default async function PostLoginPage() {
     redirect("/login");
   }
 
-  if (session.user.role === "super-admin") {
+  if (session.user.role === "admin") {
     redirect("/dashboard-admin");
   }
 
-  if (session.user.role === "admin") {
+  if (session.user.role === "agen") {
     redirect("/dashboard");
   }
 

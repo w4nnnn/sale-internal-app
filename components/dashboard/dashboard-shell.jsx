@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { signOut } from "next-auth/react";
-import { HomeIcon, LogOutIcon, LayoutDashboardIcon, UsersIcon } from "lucide-react";
+import { HomeIcon, LogOutIcon, LayoutDashboardIcon, UserCogIcon, UsersIcon } from "lucide-react";
 
 import {
   Sidebar,
@@ -24,34 +24,56 @@ import {
 import { Button } from "@/components/ui/button";
 import ManajemenPelanggan from "@/components/pelanggan/manajemen-pelanggan";
 import ManajemenAplikasi from "@/components/aplikasi/manajemen-aplikasi";
+import ManajemenUser from "@/components/users/manajemen-user";
 import { Separator } from "../ui/separator";
-
-const sections = {
-  pelanggan: {
-    label: "Pelanggan",
-    description: "Kelola data pelanggan dan lisensi.",
-    icon: UsersIcon,
-    component: ManajemenPelanggan,
-  },
-  aplikasi: {
-    label: "Aplikasi",
-    description: "Atur katalog aplikasi yang tersedia.",
-    icon: LayoutDashboardIcon,
-    component: ManajemenAplikasi,
-  },
-};
 
 export function DashboardShell({
   initialSection = "pelanggan",
   user,
 }) {
-  const [activeSection, setActiveSection] = useState(initialSection);
+  const sections = useMemo(() => {
+    const base = {
+      pelanggan: {
+        label: "Pelanggan",
+        description: "Kelola data pelanggan dan lisensi.",
+        icon: UsersIcon,
+        component: ManajemenPelanggan,
+      },
+      aplikasi: {
+        label: "Aplikasi",
+        description: "Atur katalog aplikasi yang tersedia.",
+        icon: LayoutDashboardIcon,
+        component: ManajemenAplikasi,
+      },
+    };
 
-  const activeMeta = useMemo(() => sections[activeSection] ?? sections.pelanggan, [
-    activeSection,
-  ]);
+    if (user?.role === "admin") {
+      base.users = {
+        label: "Pengguna",
+        description: "Atur akun internal dan hak akses.",
+        icon: UserCogIcon,
+        component: ManajemenUser,
+      };
+    }
 
-  const ActiveComponent = activeMeta.component;
+    return base;
+  }, [user?.role]);
+
+  const sectionKeys = useMemo(() => Object.keys(sections), [sections]);
+  const [activeSection, setActiveSection] = useState(() => {
+    if (sections[initialSection]) {
+      return initialSection;
+    }
+    return sectionKeys[0] ?? "pelanggan";
+  });
+
+  const currentSectionKey = sections[activeSection] ? activeSection : sectionKeys[0];
+
+  const activeMeta = useMemo(() => {
+    return currentSectionKey ? sections[currentSectionKey] : null;
+  }, [sections, currentSectionKey]);
+
+  const ActiveComponent = activeMeta?.component;
 
   return (
     <SidebarProvider>
@@ -78,7 +100,7 @@ export function DashboardShell({
                 <SidebarMenu>
                   {Object.entries(sections).map(([key, meta]) => {
                     const Icon = meta.icon;
-                    const isActive = key === activeSection;
+                    const isActive = key === currentSectionKey;
                     return (
                       <SidebarMenuItem key={key}>
                         <SidebarMenuButton
@@ -126,13 +148,21 @@ export function DashboardShell({
         <SidebarInset>
           <div className="flex flex-1 flex-col gap-6 px-6 py-6 md:px-10 md:py-8">
             <SidebarTrigger className="w-fit md:hidden" />
-            <div className="flex flex-col gap-1 border-b pb-4">
-              <p className="text-lg font-semibold">{activeMeta.label}</p>
-              <p className="text-sm text-muted-foreground">{activeMeta.description}</p>
-            </div>
-            <div className="flex-1">
-              <ActiveComponent />
-            </div>
+            {activeMeta ? (
+              <>
+                <div className="flex flex-col gap-1 border-b pb-4">
+                  <p className="text-lg font-semibold">{activeMeta.label}</p>
+                  <p className="text-sm text-muted-foreground">{activeMeta.description}</p>
+                </div>
+                <div className="flex-1">
+                  {ActiveComponent ? <ActiveComponent currentUser={user} /> : null}
+                </div>
+              </>
+            ) : (
+              <div className="flex flex-1 items-center justify-center text-sm text-muted-foreground">
+                Tidak ada menu yang tersedia.
+              </div>
+            )}
           </div>
         </SidebarInset>
       </div>

@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
-import conn from "@/lib/conn";
+import { getServerSession } from "next-auth";
 import { z } from "zod";
+
+import conn from "@/lib/conn";
+import { authOptions } from "@/lib/auth";
 
 const { db, all, run, get } = conn;
 
@@ -117,12 +120,44 @@ const toNumberOrNull = (value) => {
 };
 
 export async function GET() {
+	const session = await getServerSession(authOptions);
+
+	if (!session?.user) {
+		return NextResponse.json({ message: "Tidak terautentikasi." }, { status: 401 });
+	}
+
+	const { role, id: userId } = session.user;
+
 	try {
-		const data = all(
-			`SELECT app_id, nama_app, tipe_app, deskripsi, link_web, path_ios, path_android
-			 FROM Aplikasi
-			 ORDER BY app_id DESC`
-		);
+		let data;
+
+		if (role === "admin") {
+			data = all(
+				`SELECT app_id, nama_app, tipe_app, deskripsi, link_web, path_ios, path_android
+				 FROM Aplikasi
+				 ORDER BY app_id DESC`
+			);
+		} else if (role === "agen") {
+			data = all(
+				`SELECT a.app_id, a.nama_app, a.tipe_app, a.deskripsi, a.link_web, a.path_ios, a.path_android
+				 FROM Aplikasi a
+				 LEFT JOIN Lisensi l
+					 ON l.app_id = a.app_id
+					AND l.lisensi_id = (
+								SELECT lisensi_id
+								FROM Lisensi
+								WHERE app_id = a.app_id
+								ORDER BY tanggal_mulai DESC, lisensi_id DESC
+								LIMIT 1
+					)
+				 WHERE a.tipe_app = 'demo'
+						OR (a.tipe_app = 'pelanggan' AND l.user_id = ?)
+				 ORDER BY a.app_id DESC`,
+				[userId]
+			);
+		} else {
+			return NextResponse.json({ data: [] }, { status: 200 });
+		}
 
 		return NextResponse.json({ data });
 	} catch (error) {
@@ -134,6 +169,16 @@ export async function GET() {
 }
 
 export async function POST(request) {
+	const session = await getServerSession(authOptions);
+
+	if (!session?.user) {
+		return NextResponse.json({ message: "Tidak terautentikasi." }, { status: 401 });
+	}
+
+	if (session.user.role !== "admin") {
+		return NextResponse.json({ message: "Akses ditolak." }, { status: 403 });
+	}
+
 	try {
 		const body = await request.json();
 		const parsed = aplikasiBodySchema.safeParse({
@@ -212,6 +257,16 @@ export async function POST(request) {
 }
 
 export async function PUT(request) {
+	const session = await getServerSession(authOptions);
+
+	if (!session?.user) {
+		return NextResponse.json({ message: "Tidak terautentikasi." }, { status: 401 });
+	}
+
+	if (session.user.role !== "admin") {
+		return NextResponse.json({ message: "Akses ditolak." }, { status: 403 });
+	}
+
 	try {
 		const body = await request.json();
 		const appId = Number(body.app_id);
