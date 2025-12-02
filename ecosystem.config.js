@@ -11,10 +11,9 @@ module.exports = {
       // Jangan pantau perubahan file
       watch: false,
 
-      // --- RESTART OTOMATIS SETIAP 12 JAM ---
-      // Pola cron '0 */12 * * *' berarti "jalankan pada menit ke-0, setiap 12 jam".
-      // Ini akan merestart aplikasi pada pukul 00:00 (tengah malam) dan 12:00 (siang).
-      cron_restart: '0 */24 * * *',
+      // --- RESTART OTOMATIS SETIAP HARI PUKUL 10:00 ---
+      // Pola cron '0 10 * * *' berarti "jalankan pada menit ke-0, jam ke-10 setiap hari".
+      cron_restart: '0 10 * * *',
     }
   ]
 };

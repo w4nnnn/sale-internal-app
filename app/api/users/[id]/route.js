@@ -17,7 +17,16 @@ const parseUserId = (params) => {
 	return id;
 };
 
-export async function PUT(request, { params }) {
+const resolveParams = async (context) => {
+	const value = context?.params;
+	if (value && typeof value.then === "function") {
+		return await value;
+	}
+	return value;
+};
+
+export async function PUT(request, context) {
+	const params = await resolveParams(context);
 	const userId = parseUserId(params);
 
 	if (!userId) {
@@ -130,7 +139,8 @@ export async function PUT(request, { params }) {
 	}
 }
 
-export async function DELETE(request, { params }) {
+export async function DELETE(request, context) {
+	const params = await resolveParams(context);
 	const userId = parseUserId(params);
 
 	if (!userId) {
