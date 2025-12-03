@@ -4,6 +4,7 @@ import { z } from "zod";
 
 import conn from "@/lib/conn";
 import { authOptions } from "@/lib/auth";
+import { deleteStoredFile } from "@/lib/aplikasi-files";
 
 const { db, all, run, get } = conn;
 
@@ -296,11 +297,22 @@ export async function PUT(request) {
 			return NextResponse.json({ message: issues.join(" ") }, { status: 400 });
 		}
 
+		const existing = get(
+			`SELECT app_id, path_ios, path_android FROM Aplikasi WHERE app_id = ?`,
+			[appId]
+		);
+
+		if (!existing) {
+			return NextResponse.json({ message: "Aplikasi tidak ditemukan." }, { status: 404 });
+		}
+
 		const payload = parsed.data;
 		const pelangganId = toNumberOrNull(payload.pelanggan_id);
 		const userId = toNumberOrNull(payload.user_id);
 		const tanggalMulai = payload.tanggal_mulai ?? null;
 		const tanggalHabis = payload.tanggal_habis ?? null;
+		const nextPathIos = normalizeNullable(payload.path_ios);
+		const nextPathAndroid = normalizeNullable(payload.path_android);
 
 		const updateAppWithLicense = db.transaction(() => {
 			run(
@@ -318,8 +330,8 @@ export async function PUT(request) {
 					tipe_app: payload.tipe_app,
 					deskripsi: normalizeNullable(payload.deskripsi),
 					link_web: normalizeNullable(payload.link_web),
-					path_ios: normalizeNullable(payload.path_ios),
-					path_android: normalizeNullable(payload.path_android),
+						path_ios: nextPathIos,
+						path_android: nextPathAndroid,
 				}
 			);
 
@@ -364,6 +376,24 @@ export async function PUT(request) {
 		});
 
 		updateAppWithLicense();
+
+		try {
+			const removalTasks = [];
+
+			if (existing.path_ios && existing.path_ios !== nextPathIos) {
+				removalTasks.push(deleteStoredFile(existing.path_ios));
+			}
+
+			if (existing.path_android && existing.path_android !== nextPathAndroid) {
+				removalTasks.push(deleteStoredFile(existing.path_android));
+			}
+
+			if (removalTasks.length > 0) {
+				await Promise.all(removalTasks);
+			}
+		} catch (cleanupError) {
+			console.error("Gagal menghapus file aplikasi lama:", cleanupError);
+		}
 
 		const aplikasi = get(
 			`SELECT app_id, nama_app, tipe_app, deskripsi, link_web, path_ios, path_android

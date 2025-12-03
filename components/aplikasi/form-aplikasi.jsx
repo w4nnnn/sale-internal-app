@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -174,6 +174,7 @@ export function FormAplikasiDialog({
 	onOpenChange,
 	mode = "create",
 	initialData,
+	currentUser,
 }) {
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [isFetchingOptions, setIsFetchingOptions] = useState(false);
@@ -181,6 +182,11 @@ export function FormAplikasiDialog({
 	const [userOptions, setUserOptions] = useState([]);
 	const [initialLicenseLoaded, setInitialLicenseLoaded] = useState(false);
 	const [internalOpen, setInternalOpen] = useState(false);
+	const [isUploadingAndroid, setIsUploadingAndroid] = useState(false);
+	const [isUploadingIos, setIsUploadingIos] = useState(false);
+	const currentUserRole = currentUser?.role;
+	const currentUserId = currentUser?.id;
+	const isAgent = currentUserRole === "agen";
 
 	const isControlled = typeof open === "boolean";
 	const dialogOpen = isControlled ? open : internalOpen;
@@ -192,6 +198,10 @@ export function FormAplikasiDialog({
 	});
 
 	const tipeApp = form.watch("tipe_app");
+	const tipeAppSelectOptions = useMemo(
+		() => (isAgent ? tipeAppOptions.filter((option) => option.value === "pelanggan") : tipeAppOptions),
+		[isAgent]
+	);
 
 	const pelangganSelectOptions = useMemo(
 		() =>
@@ -235,6 +245,17 @@ export function FormAplikasiDialog({
 			form.reset(defaultValues);
 		}
 	}, [dialogOpen, isEdit, initialData, form]);
+
+	useEffect(() => {
+		if (!dialogOpen || !isAgent) {
+			return;
+		}
+
+		form.setValue("tipe_app", "pelanggan");
+		if (currentUserId) {
+			form.setValue("user_id", String(currentUserId));
+		}
+	}, [dialogOpen, isAgent, currentUserId, form]);
 
 	useEffect(() => {
 		if (tipeApp !== "pelanggan") {
@@ -364,9 +385,78 @@ export function FormAplikasiDialog({
 		if (!value) {
 			form.reset(defaultValues);
 			setInitialLicenseLoaded(false);
+			setIsUploadingAndroid(false);
+			setIsUploadingIos(false);
 		}
 		onOpenChange?.(value);
 	};
+
+	const handleClearUploadedFile = useCallback((onChange) => {
+		onChange("");
+	}, []);
+
+		const uploadFile = useCallback(
+			async ({ file, target, onChange, previousPath }) => {
+				if (!file) {
+					return;
+				}
+
+				const currentAppName = form.getValues("nama_app")?.trim();
+
+				if (!currentAppName) {
+					toast.error("Isi nama aplikasi terlebih dahulu sebelum mengunggah file.");
+					return;
+				}
+
+				const extension = file.name.split(".").pop()?.toLowerCase();
+				const expectedExtension = target === "android" ? "apk" : "ipa";
+
+				if (extension !== expectedExtension) {
+					toast.error(`File ${target === "android" ? "Android" : "iOS"} harus berformat .${expectedExtension}.`);
+					return;
+				}
+
+				const setUploading = target === "android" ? setIsUploadingAndroid : setIsUploadingIos;
+
+				setUploading(true);
+
+				try {
+					const formData = new FormData();
+					formData.append("file", file);
+					formData.append("appName", currentAppName);
+
+					if (previousPath && previousPath.trim()) {
+						formData.append("previousPath", previousPath.trim());
+					}
+
+					const response = await fetch("/api/uploads/aplikasi", {
+						method: "POST",
+						body: formData,
+					});
+
+					const payload = await response.json().catch(() => ({}));
+
+					if (!response.ok) {
+						throw new Error(payload?.message || "Gagal mengunggah file.");
+					}
+
+					const filePath = payload?.data?.path;
+
+					if (!filePath) {
+						throw new Error("Respons unggah tidak valid.");
+					}
+
+					onChange(filePath);
+					toast.success(`File ${target === "android" ? "Android" : "iOS"} berhasil diunggah.`);
+				} catch (error) {
+					const message = typeof error === "object" && error?.message ? error.message : "Gagal mengunggah file.";
+					toast.error(message);
+				} finally {
+					setUploading(false);
+				}
+			},
+			[form]
+		);
 
 	const toNumberOrNull = (value) => {
 		if (!value) {
@@ -474,14 +564,14 @@ export function FormAplikasiDialog({
 							render={({ field }) => (
 								<FormItem>
 									<FormLabel>Tipe Aplikasi</FormLabel>
-									<Select value={field.value} onValueChange={field.onChange}>
+									<Select value={field.value} onValueChange={field.onChange} disabled={isAgent}>
 										<FormControl>
 											<SelectTrigger>
 												<SelectValue placeholder="Pilih tipe aplikasi" />
 											</SelectTrigger>
 										</FormControl>
 										<SelectContent>
-											{tipeAppOptions.map((option) => (
+											{tipeAppSelectOptions.map((option) => (
 												<SelectItem key={option.value} value={option.value}>
 													{option.label}
 												</SelectItem>
@@ -545,7 +635,7 @@ export function FormAplikasiDialog({
 											<Select
 												value={field.value ?? ""}
 												onValueChange={field.onChange}
-												disabled={isFetchingOptions || userSelectOptions.length === 0}
+												disabled={isFetchingOptions || userSelectOptions.length === 0 || isAgent}
 											>
 												<FormControl>
 													<SelectTrigger>
@@ -705,9 +795,72 @@ export function FormAplikasiDialog({
 								name="path_ios"
 								render={({ field }) => (
 									<FormItem>
-										<FormLabel>Path iOS (.ipa)</FormLabel>
+										<FormLabel>File iOS (.ipa)</FormLabel>
 										<FormControl>
-											<Input placeholder="/files/app-ios.ipa" {...field} />
+											<div className="space-y-3">
+												{field.value ? (
+													<div className="flex items-center justify-between rounded-md border border-dashed border-muted-foreground/30 px-3 py-2">
+														<a
+															href={field.value}
+															target="_blank"
+															rel="noopener noreferrer"
+															className="text-sm font-medium text-primary underline-offset-4 hover:underline"
+														>
+															Unduh file
+														</a>
+														<Button
+															type="button"
+															variant="ghost"
+															size="sm"
+																							onClick={() => handleClearUploadedFile(field.onChange)}
+															disabled={isUploadingIos}
+														>
+															Hapus
+														</Button>
+													</div>
+												) : (
+													<p className="text-xs text-muted-foreground">Belum ada file iOS yang diunggah.</p>
+												)}
+												<div className="flex h-10 items-center gap-3">
+													<Input
+														type="file"
+														accept=".ipa"
+														disabled={isUploadingIos}
+														onChange={(event) => {
+																									const files = event.target.files;
+
+																									if (!files || files.length === 0) {
+																										return;
+																									}
+
+																									if (files.length > 1) {
+																										toast.error("Unggah hanya satu file.");
+																										event.target.value = "";
+																										return;
+																									}
+
+																									const selected = files[0];
+
+																									if (selected) {
+																										uploadFile({
+																											file: selected,
+																											target: "ios",
+																											onChange: field.onChange,
+																											previousPath: field.value,
+																										});
+																									}
+
+																									event.target.value = "";
+														}}
+													/>
+													{isUploadingIos ? (
+														<p className="text-xs text-muted-foreground">Mengunggah...</p>
+													) : null}
+												</div>
+												<p className="text-xs text-muted-foreground">
+													Unggah file berekstensi .ipa. Link unduhan akan tersimpan otomatis.
+												</p>
+											</div>
 										</FormControl>
 										<FormMessage />
 									</FormItem>
@@ -719,9 +872,72 @@ export function FormAplikasiDialog({
 								name="path_android"
 								render={({ field }) => (
 									<FormItem>
-										<FormLabel>Path Android (.apk)</FormLabel>
+										<FormLabel>File Android (.apk)</FormLabel>
 										<FormControl>
-											<Input placeholder="/files/app-android.apk" {...field} />
+											<div className="space-y-3">
+												{field.value ? (
+													<div className="flex items-center justify-between rounded-md border border-dashed border-muted-foreground/30 px-3 py-2">
+														<a
+															href={field.value}
+															target="_blank"
+															rel="noopener noreferrer"
+															className="text-sm font-medium text-primary underline-offset-4 hover:underline"
+														>
+															Unduh file
+														</a>
+														<Button
+															type="button"
+															variant="ghost"
+															size="sm"
+																							onClick={() => handleClearUploadedFile(field.onChange)}
+															disabled={isUploadingAndroid}
+														>
+															Hapus
+														</Button>
+													</div>
+												) : (
+													<p className="text-xs text-muted-foreground">Belum ada file Android yang diunggah.</p>
+												)}
+												<div className="flex h-10 items-center gap-3">
+													<Input
+														type="file"
+														accept=".apk"
+														disabled={isUploadingAndroid}
+														onChange={(event) => {
+																									const files = event.target.files;
+
+																									if (!files || files.length === 0) {
+																										return;
+																									}
+
+																									if (files.length > 1) {
+																										toast.error("Unggah hanya satu file.");
+																										event.target.value = "";
+																										return;
+																									}
+
+																									const selected = files[0];
+
+																									if (selected) {
+																										uploadFile({
+																											file: selected,
+																											target: "android",
+																											onChange: field.onChange,
+																											previousPath: field.value,
+																										});
+																									}
+
+																									event.target.value = "";
+														}}
+													/>
+													{isUploadingAndroid ? (
+														<p className="text-xs text-muted-foreground">Mengunggah...</p>
+													) : null}
+												</div>
+												<p className="text-xs text-muted-foreground">
+													Unggah file berekstensi .apk. Link unduhan akan tersimpan otomatis.
+												</p>
+											</div>
 										</FormControl>
 										<FormMessage />
 									</FormItem>

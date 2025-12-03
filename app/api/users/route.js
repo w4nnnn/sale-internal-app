@@ -1,8 +1,10 @@
 import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
 import bcrypt from "bcrypt";
 import { z } from "zod";
 
 import conn from "@/lib/conn";
+import { authOptions } from "@/lib/auth";
 
 const { all, get, run } = conn;
 
@@ -21,7 +23,10 @@ export const userBodySchema = z.object({
     .trim()
     .min(1, "Email wajib diisi.")
     .email("Format email tidak valid."),
-  telepon_user: z.string().trim().optional(),
+  telepon_user: z
+    .string({ required_error: "Nomor telepon wajib diisi." })
+    .trim()
+    .min(1, "Nomor telepon wajib diisi."),
   role: z.enum(["agen", "admin"], {
     required_error: "Role wajib dipilih.",
   }),
@@ -37,6 +42,16 @@ export const normalizeNullable = (value) => {
 };
 
 export async function GET() {
+  const session = await getServerSession(authOptions);
+
+  if (!session?.user) {
+    return NextResponse.json({ message: "Tidak terautentikasi." }, { status: 401 });
+  }
+
+  if (session.user.role !== "admin") {
+    return NextResponse.json({ message: "Akses ditolak." }, { status: 403 });
+  }
+
   try {
     const data = all(
       `SELECT user_id, nama_user, username, email_user, telepon_user, role
@@ -54,6 +69,16 @@ export async function GET() {
 }
 
 export async function POST(request) {
+  const session = await getServerSession(authOptions);
+
+  if (!session?.user) {
+    return NextResponse.json({ message: "Tidak terautentikasi." }, { status: 401 });
+  }
+
+  if (session.user.role !== "admin") {
+    return NextResponse.json({ message: "Akses ditolak." }, { status: 403 });
+  }
+
   try {
     const body = await request.json();
     const parsed = userBodySchema.safeParse({
@@ -110,6 +135,18 @@ export async function POST(request) {
       );
     }
 
+    const existingTelepon = get(
+      `SELECT user_id FROM Users WHERE telepon_user = ?`,
+      [payload.telepon_user]
+    );
+
+    if (existingTelepon) {
+      return NextResponse.json(
+        { message: "Nomor telepon sudah digunakan." },
+        { status: 400 }
+      );
+    }
+
     const passwordHash = await bcrypt.hash(password, 10);
 
     const insertResult = run(
@@ -119,7 +156,7 @@ export async function POST(request) {
         nama_user: payload.nama_user.trim(),
         username: payload.username.trim(),
         email_user: payload.email_user.trim(),
-        telepon_user: normalizeNullable(payload.telepon_user),
+        telepon_user: payload.telepon_user.trim(),
         password_hash: passwordHash,
         role: payload.role,
       }

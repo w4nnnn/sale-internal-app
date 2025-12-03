@@ -1,8 +1,10 @@
 import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
 import bcrypt from "bcrypt";
 
 import conn from "@/lib/conn";
-import { userBodySchema, normalizeNullable } from "../route";
+import { authOptions } from "@/lib/auth";
+import { userBodySchema } from "../route";
 
 const { get, run } = conn;
 
@@ -25,12 +27,81 @@ const resolveParams = async (context) => {
 	return value;
 };
 
+export async function GET(request, context) {
+	const params = await resolveParams(context);
+	const userId = parseUserId(params);
+
+	if (!userId) {
+		return NextResponse.json({ message: "ID pengguna tidak valid." }, { status: 400 });
+	}
+
+	const session = await getServerSession(authOptions);
+
+	if (!session?.user) {
+		return NextResponse.json({ message: "Tidak terautentikasi." }, { status: 401 });
+	}
+
+	const { role: sessionRole, id: sessionUserIdValue } = session.user;
+	const sessionUserId = Number(sessionUserIdValue);
+
+	if (Number.isNaN(sessionUserId)) {
+		return NextResponse.json({ message: "Identitas pengguna tidak valid." }, { status: 403 });
+	}
+
+	const isAdmin = sessionRole === "admin";
+	const isSelf = sessionUserId === userId;
+
+	if (!isAdmin && !isSelf) {
+		return NextResponse.json({ message: "Akses ditolak." }, { status: 403 });
+	}
+
+	try {
+		const user = get(
+			`SELECT user_id, nama_user, username, email_user, telepon_user, role
+			 FROM Users
+			 WHERE user_id = ?`,
+			[userId]
+		);
+
+		if (!user) {
+			return NextResponse.json({ message: "Pengguna tidak ditemukan." }, { status: 404 });
+		}
+
+		return NextResponse.json({ data: user });
+	} catch (error) {
+		return NextResponse.json(
+			{ message: "Gagal mengambil data pengguna.", details: error.message },
+			{ status: 500 }
+		);
+	}
+}
+
 export async function PUT(request, context) {
 	const params = await resolveParams(context);
 	const userId = parseUserId(params);
 
 	if (!userId) {
 		return NextResponse.json({ message: "ID pengguna tidak valid." }, { status: 400 });
+	}
+
+	const session = await getServerSession(authOptions);
+
+	if (!session?.user) {
+		return NextResponse.json({ message: "Tidak terautentikasi." }, { status: 401 });
+	}
+
+	const { role: sessionRole, id: sessionUserIdValue } = session.user;
+	const sessionUserId = Number(sessionUserIdValue);
+
+	if (Number.isNaN(sessionUserId)) {
+		return NextResponse.json({ message: "Identitas pengguna tidak valid." }, { status: 403 });
+	}
+
+	const isAdmin = sessionRole === "admin";
+	const isSelf = sessionUserId === userId;
+
+	if (!isAdmin && !isSelf) {
+		return NextResponse.json({ message: "Akses ditolak." }, { status: 403 });
 	}
 
 	try {
@@ -67,6 +138,8 @@ export async function PUT(request, context) {
 			);
 		}
 
+		const roleToApply = isAdmin ? payload.role : sessionRole;
+
 		const existingUsername = get(
 			`SELECT user_id FROM Users WHERE LOWER(username) = LOWER(?) AND user_id != ?`,
 			[payload.username, userId]
@@ -91,13 +164,25 @@ export async function PUT(request, context) {
 			);
 		}
 
+		const existingTelepon = get(
+			`SELECT user_id FROM Users WHERE telepon_user = ? AND user_id != ?`,
+			[payload.telepon_user, userId]
+		);
+
+		if (existingTelepon) {
+			return NextResponse.json(
+				{ message: "Nomor telepon sudah digunakan." },
+				{ status: 400 }
+			);
+		}
+
 		const updateParams = {
 			user_id: userId,
 			nama_user: payload.nama_user.trim(),
 			username: payload.username.trim(),
 			email_user: payload.email_user.trim(),
-			telepon_user: normalizeNullable(payload.telepon_user),
-			role: payload.role,
+			telepon_user: payload.telepon_user.trim(),
+			role: roleToApply,
 		};
 
 		if (passwordInput.length > 0) {
@@ -145,6 +230,26 @@ export async function DELETE(request, context) {
 
 	if (!userId) {
 		return NextResponse.json({ message: "ID pengguna tidak valid." }, { status: 400 });
+	}
+
+	const session = await getServerSession(authOptions);
+
+	if (!session?.user) {
+		return NextResponse.json({ message: "Tidak terautentikasi." }, { status: 401 });
+	}
+
+	const { role: sessionRole, id: sessionUserIdValue } = session.user;
+	const sessionUserId = Number(sessionUserIdValue);
+
+	if (Number.isNaN(sessionUserId)) {
+		return NextResponse.json({ message: "Identitas pengguna tidak valid." }, { status: 403 });
+	}
+
+	const isAdmin = sessionRole === "admin";
+	const isSelf = sessionUserId === userId;
+
+	if (!isAdmin && !isSelf) {
+		return NextResponse.json({ message: "Akses ditolak." }, { status: 403 });
 	}
 
 	try {
