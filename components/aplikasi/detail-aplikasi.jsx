@@ -1,6 +1,16 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import {
+	AppWindowIcon,
+	CalendarIcon,
+	GlobeIcon,
+	SmartphoneIcon,
+	UserIcon,
+	UsersIcon,
+	FileTextIcon,
+	PackageIcon,
+} from "lucide-react";
 
 import {
 	Dialog,
@@ -13,6 +23,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 
 const dateFormatter = new Intl.DateTimeFormat("id-ID", {
@@ -22,12 +33,12 @@ const dateFormatter = new Intl.DateTimeFormat("id-ID", {
 });
 
 const detailFields = [
-	{ key: "nama_app", label: "Nama Aplikasi" },
-	{ key: "tipe_app", label: "Tipe" },
-	{ key: "deskripsi", label: "Deskripsi" },
-	{ key: "link_web", label: "Link Web" },
-	{ key: "path_ios", label: "Path iOS" },
-	{ key: "path_android", label: "Path Android" },
+	{ key: "nama_app", label: "Nama Aplikasi", icon: AppWindowIcon },
+	{ key: "tipe_app", label: "Tipe", icon: PackageIcon },
+	{ key: "deskripsi", label: "Deskripsi", icon: FileTextIcon },
+	{ key: "link_web", label: "Link Web", icon: GlobeIcon },
+	{ key: "path_ios", label: "Path iOS", icon: SmartphoneIcon },
+	{ key: "path_android", label: "Path Android", icon: SmartphoneIcon },
 ];
 
 function formatValue(key, value) {
@@ -153,107 +164,165 @@ export function DetailAplikasiDialog({ aplikasi, open, onOpenChange }) {
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent>
-				<DialogHeader>
-					<DialogTitle>Detail Aplikasi</DialogTitle>
-					<DialogDescription>
-						Informasi lengkap mengenai aplikasi yang dipilih.
-					</DialogDescription>
+			<DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+				<DialogHeader className="pb-4">
+					<div className="flex items-center gap-3">
+						<div className="p-2 bg-primary/10 rounded-lg">
+							<AppWindowIcon className="h-6 w-6 text-primary" />
+						</div>
+						<div>
+							<DialogTitle className="text-xl">Detail Aplikasi</DialogTitle>
+							<DialogDescription className="text-muted-foreground">
+								Informasi lengkap mengenai aplikasi yang dipilih.
+							</DialogDescription>
+						</div>
+					</div>
 				</DialogHeader>
 
 				{!aplikasi ? (
 					<p className="text-muted-foreground text-sm">Data aplikasi tidak tersedia.</p>
 				) : (
-					<div className="space-y-6">
-						<Separator />
-
-						<dl className="grid gap-4 sm:grid-cols-2">
-							{normalizedFields.map((field) => (
-								<div key={field.key} className="space-y-1">
-									<dt className="text-muted-foreground text-xs font-semibold uppercase tracking-wide">
-										{field.label}
-									</dt>
-									<dd className="text-sm text-foreground break-words">
-										{field.key === "tipe_app" && field.value ? (
-											<Badge variant="outline" className="capitalize">
-												{field.value}
-											</Badge>
-										) : field.key === "link_web" && field.value ? (
-											<a
-												href={formatValue(field.key, field.value)}
-												target="_blank"
-												rel="noopener noreferrer"
-												className="text-primary hover:underline"
-											>
-												Kunjungi
-											</a>
-										) : field.value ? (
-											field.value
-										) : (
-											"-"
-										)}
-									</dd>
+					<div className="space-y-3">
+						<Card>
+							<CardHeader>
+								<CardTitle className="text-lg flex items-center gap-1">
+									<PackageIcon className="h-5 w-5" />
+									Informasi Aplikasi
+								</CardTitle>
+							</CardHeader>
+							<CardContent>
+								<div className="grid gap-2 sm:grid-cols-2">
+									{normalizedFields.map((field) => {
+										const Icon = field.icon;
+										return (
+											<div key={field.key} className="flex items-start gap-3 p-3 rounded-lg bg-muted/30">
+												<div className="p-1.5 bg-background rounded-md">
+													<Icon className="h-4 w-4 text-muted-foreground" />
+												</div>
+												<div className="flex-1 min-w-0">
+													<dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-1">
+														{field.label}
+													</dt>
+													<dd className="text-sm text-foreground break-words">
+														{field.key === "tipe_app" && field.value ? (
+															<Badge variant="secondary" className="capitalize">
+																{field.value}
+															</Badge>
+														) : field.key === "link_web" && field.value ? (
+															<a
+																href={formatValue(field.key, field.value)}
+																target="_blank"
+																rel="noopener noreferrer"
+																className="text-primary hover:underline flex items-center gap-1"
+															>
+																<GlobeIcon className="h-3 w-3" />
+																Kunjungi
+															</a>
+														) : field.value ? (
+															field.value
+														) : (
+															<span className="text-muted-foreground">-</span>
+														)}
+													</dd>
+												</div>
+											</div>
+										);
+									})}
 								</div>
-							))}
-						</dl>
+							</CardContent>
+						</Card>
 
 						{aplikasi.tipe_app === "pelanggan" ? (
-							<div className="space-y-3">
-								<Separator />
-								<h4 className="text-base font-semibold text-foreground">Lisensi Terbaru</h4>
-								{isLoadingLicense ? (
-									<p className="text-muted-foreground text-sm">Memuat data lisensi...</p>
-								) : licenseError ? (
-									<p className="text-destructive text-sm">{licenseError}</p>
-								) : license ? (
-									<dl className="grid gap-3 sm:grid-cols-2">
-										<div>
-											<dt className="text-muted-foreground text-xs font-semibold uppercase tracking-wide">
-												Pelanggan
-											</dt>
-											<dd className="text-sm text-foreground">
-												{pelangganName || license.pelanggan_id}
-											</dd>
+							<Card>
+								<CardHeader>
+									<CardTitle className="text-lg flex items-center gap-2">
+										<UsersIcon className="h-5 w-5" />
+										Lisensi Terbaru
+									</CardTitle>
+								</CardHeader>
+								<CardContent>
+									{isLoadingLicense ? (
+										<div className="flex items-center gap-2 text-muted-foreground">
+											<div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+											Memuat data lisensi...
 										</div>
-										<div>
-											<dt className="text-muted-foreground text-xs font-semibold uppercase tracking-wide">
-												User Penanggung Jawab
-											</dt>
-											<dd className="text-sm text-foreground">
-												{userName || license.user_id}
-											</dd>
+									) : licenseError ? (
+										<div className="p-4 bg-destructive/10 border border-destructive/20 rounded-lg">
+											<p className="text-destructive text-sm">{licenseError}</p>
 										</div>
-										<div>
-											<dt className="text-muted-foreground text-xs font-semibold uppercase tracking-wide">
-												Tanggal Mulai
-											</dt>
-											<dd className="text-sm text-foreground">
-												{license.tanggal_mulai
-													? dateFormatter.format(new Date(license.tanggal_mulai))
-													: "-"}
-											</dd>
+									) : license ? (
+										<div className="grid gap-2 sm:grid-cols-2">
+											<div className="flex items-start gap-3 p-3 rounded-lg bg-muted/30">
+												<div className="p-1.5 bg-background rounded-md">
+													<UsersIcon className="h-4 w-4 text-muted-foreground" />
+												</div>
+												<div className="flex-1">
+													<dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-1">
+														Pelanggan
+													</dt>
+													<dd className="text-sm text-foreground font-medium">
+														{pelangganName || license.pelanggan_id}
+													</dd>
+												</div>
+											</div>
+											<div className="flex items-start gap-3 p-3 rounded-lg bg-muted/30">
+												<div className="p-1.5 bg-background rounded-md">
+													<UserIcon className="h-4 w-4 text-muted-foreground" />
+												</div>
+												<div className="flex-1">
+													<dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-1">
+														User Penanggung Jawab
+													</dt>
+													<dd className="text-sm text-foreground font-medium">
+														{userName || license.user_id}
+													</dd>
+												</div>
+											</div>
+											<div className="flex items-start gap-3 p-3 rounded-lg bg-muted/30">
+												<div className="p-1.5 bg-background rounded-md">
+													<CalendarIcon className="h-4 w-4 text-muted-foreground" />
+												</div>
+												<div className="flex-1">
+													<dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-1">
+														Tanggal Mulai
+													</dt>
+													<dd className="text-sm text-foreground">
+														{license.tanggal_mulai
+															? dateFormatter.format(new Date(license.tanggal_mulai))
+															: <span className="text-muted-foreground">-</span>}
+													</dd>
+												</div>
+											</div>
+											<div className="flex items-start gap-3 p-3 rounded-lg bg-muted/30">
+												<div className="p-1.5 bg-background rounded-md">
+													<CalendarIcon className="h-4 w-4 text-muted-foreground" />
+												</div>
+												<div className="flex-1">
+													<dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-1">
+														Tanggal Habis
+													</dt>
+													<dd className="text-sm text-foreground">
+														{license.tanggal_habis
+															? dateFormatter.format(new Date(license.tanggal_habis))
+															: <span className="text-muted-foreground">-</span>}
+													</dd>
+												</div>
+											</div>
 										</div>
-										<div>
-											<dt className="text-muted-foreground text-xs font-semibold uppercase tracking-wide">
-												Tanggal Habis
-											</dt>
-											<dd className="text-sm text-foreground">
-												{license.tanggal_habis
-													? dateFormatter.format(new Date(license.tanggal_habis))
-													: "-"}
-											</dd>
+									) : (
+										<div className="p-4 bg-muted/30 rounded-lg text-center">
+											<PackageIcon className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
+											<p className="text-muted-foreground text-sm">Belum ada data lisensi.</p>
 										</div>
-									</dl>
-								) : (
-									<p className="text-muted-foreground text-sm">Belum ada data lisensi.</p>
-								)}
-							</div>
+									)}
+								</CardContent>
+							</Card>
 						) : null}
 					</div>
 				)}
 
-				<DialogFooter>
-					<Button type="button" onClick={() => onOpenChange?.(false)}>
+				<DialogFooter className="pt-6">
+					<Button type="button" variant="outline" onClick={() => onOpenChange?.(false)}>
 						Tutup
 					</Button>
 				</DialogFooter>

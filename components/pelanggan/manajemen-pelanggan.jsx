@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/alert-dialog";
 
 import { FormPelangganDialog } from "./form-pelanggan";
+import { DetailPelangganDialog } from "./detail-pelanggan";
 
 export function ManajemenPelanggan() {
 	const [data, setData] = useState([]);
@@ -28,6 +29,8 @@ export function ManajemenPelanggan() {
 	const [selectedPelanggan, setSelectedPelanggan] = useState(null);
 	const [deleteTarget, setDeleteTarget] = useState(null);
 	const [isDeleting, setIsDeleting] = useState(false);
+	const [selectedPelangganDetail, setSelectedPelangganDetail] = useState(null);
+	const [openDetail, setOpenDetail] = useState(false);
 
 	const fetchData = useCallback(async () => {
 		setIsLoading(true);
@@ -161,7 +164,14 @@ export function ManajemenPelanggan() {
 							renderStatusRow("Belum ada data pelanggan.")}
 						{!isLoading && !error &&
 							data.map((item, index) => (
-								<TableRow key={item.pelanggan_id ?? `${item.nama_pelanggan}-${index}`}>
+								<TableRow
+									key={item.pelanggan_id ?? `${item.nama_pelanggan}-${index}`}
+									className="cursor-pointer hover:bg-muted/50"
+									onClick={() => {
+										setSelectedPelangganDetail(item);
+										setOpenDetail(true);
+									}}
+								>
 									<TableCell>{index + 1}</TableCell>
 									<TableCell className="font-medium">{item.nama_pelanggan}</TableCell>
 									<TableCell>{item.email_pelanggan ?? "-"}</TableCell>
@@ -173,7 +183,8 @@ export function ManajemenPelanggan() {
 												type="button"
 												variant="ghost"
 												size="icon"
-												onClick={() => {
+												onClick={(e) => {
+													e.stopPropagation();
 													setDialogMode("edit");
 													setSelectedPelanggan(item);
 													setDialogOpen(true);
@@ -185,7 +196,10 @@ export function ManajemenPelanggan() {
 												type="button"
 												variant="ghost"
 												size="icon"
-												onClick={() => setDeleteTarget(item)}
+												onClick={(e) => {
+													e.stopPropagation();
+													setDeleteTarget(item);
+												}}
 											>
 												<TrashIcon className="size-4" />
 											</Button>
@@ -228,6 +242,12 @@ export function ManajemenPelanggan() {
 					</AlertDialogFooter>
 				</AlertDialogContent>
 			</AlertDialog>
+
+			<DetailPelangganDialog
+				open={openDetail}
+				onOpenChange={setOpenDetail}
+				pelanggan={selectedPelangganDetail}
+			/>
 		</section>
 	);
 }

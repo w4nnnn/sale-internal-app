@@ -24,7 +24,8 @@ import {
 	AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
-import { FormUserDialog } from "./form-user";
+import { FormUserDialog } from "./form-users";
+import { DetailUserDialog } from "./detail-users";
 
 export function ManajemenUser() {
 	const [data, setData] = useState([]);
@@ -35,6 +36,8 @@ export function ManajemenUser() {
 	const [selectedUser, setSelectedUser] = useState(null);
 	const [deleteTarget, setDeleteTarget] = useState(null);
 	const [isDeleting, setIsDeleting] = useState(false);
+	const [detailDialogOpen, setDetailDialogOpen] = useState(false);
+	const [selectedUserDetail, setSelectedUserDetail] = useState(null);
 
 	const fetchData = useCallback(async () => {
 		setIsLoading(true);
@@ -166,7 +169,14 @@ export function ManajemenUser() {
 							renderStatusRow("Belum ada data pengguna.")}
 						{!isLoading && !error &&
 							data.map((item, index) => (
-								<TableRow key={item.user_id ?? `${item.username}-${index}`}>
+								<TableRow
+									key={item.user_id ?? `${item.username}-${index}`}
+									className="cursor-pointer hover:bg-muted/50"
+									onClick={() => {
+										setSelectedUserDetail(item);
+										setDetailDialogOpen(true);
+									}}
+								>
 									<TableCell>{index + 1}</TableCell>
 									<TableCell className="font-medium">{item.nama_user}</TableCell>
 									<TableCell>{item.username}</TableCell>
@@ -181,7 +191,8 @@ export function ManajemenUser() {
 												type="button"
 												variant="ghost"
 												size="icon"
-												onClick={() => {
+												onClick={(e) => {
+													e.stopPropagation();
 													setDialogMode("edit");
 													setSelectedUser(item);
 													setDialogOpen(true);
@@ -193,7 +204,10 @@ export function ManajemenUser() {
 												type="button"
 												variant="ghost"
 												size="icon"
-												onClick={() => setDeleteTarget(item)}
+												onClick={(e) => {
+													e.stopPropagation();
+													setDeleteTarget(item);
+												}}
 											>
 												<TrashIcon className="size-4" />
 											</Button>
@@ -211,6 +225,12 @@ export function ManajemenUser() {
 				mode={dialogMode}
 				initialData={selectedUser}
 				onSuccess={handleDialogSuccess}
+			/>
+
+			<DetailUserDialog
+				open={detailDialogOpen}
+				onOpenChange={setDetailDialogOpen}
+				user={selectedUserDetail}
 			/>
 
 			<AlertDialog

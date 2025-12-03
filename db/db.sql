@@ -8,8 +8,8 @@ CREATE TABLE IF NOT EXISTS Users (
   user_id INTEGER PRIMARY KEY AUTOINCREMENT,
   nama_user TEXT NOT NULL,
   username TEXT NOT NULL UNIQUE,   -- Username khusus untuk login
-  email_user TEXT NOT NULL UNIQUE,  -- Digunakan untuk kontak/email pemberitahuan
-  telepon_user TEXT,
+  email_user TEXT,  -- Digunakan untuk kontak/email pemberitahuan
+  telepon_user TEXT NOT NULL UNIQUE,  -- Digunakan untuk kontak/WhatsApp pemberitahuan
   password_hash TEXT NOT NULL,      -- HARUS disimpan dalam bentuk hash (misal: bcrypt)
   role TEXT NOT NULL DEFAULT 'agen'  -- Role akses: 'agen' atau 'admin'
 );
@@ -40,7 +40,9 @@ CREATE TABLE IF NOT EXISTS Pelanggan (
   nama_pelanggan TEXT NOT NULL,
   email_pelanggan TEXT,
   perusahaan TEXT,
-  telepon_pelanggan TEXT
+  telepon_pelanggan TEXT,
+  added_user_id INTEGER NOT NULL,
+  FOREIGN KEY (added_user_id) REFERENCES Users (user_id) ON DELETE RESTRICT
 );
 
 -- -----------------------------------------------------
@@ -82,3 +84,4 @@ CREATE INDEX IF NOT EXISTS idx_lisensi_app ON Lisensi (app_id);
 CREATE INDEX IF NOT EXISTS idx_lisensi_pelanggan ON Lisensi (pelanggan_id);
 CREATE INDEX IF NOT EXISTS idx_lisensi_user ON Lisensi (user_id);
 CREATE INDEX IF NOT EXISTS idx_lisensi_tanggal_habis ON Lisensi (tanggal_habis);
+CREATE INDEX IF NOT EXISTS idx_pelanggan_added_user ON Pelanggan (added_user_id);

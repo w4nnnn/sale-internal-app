@@ -24,7 +24,7 @@ import {
 import { Button } from "@/components/ui/button";
 import ManajemenPelanggan from "@/components/pelanggan/manajemen-pelanggan";
 import ManajemenAplikasi from "@/components/aplikasi/manajemen-aplikasi";
-import ManajemenUser from "@/components/users/manajemen-user";
+import ManajemenUser from "@/components/users/manajemen-users";
 import { Separator } from "../ui/separator";
 
 export function DashboardShell({
@@ -149,15 +149,9 @@ export function DashboardShell({
           <div className="flex flex-1 flex-col gap-6 px-6 py-6 md:px-10 md:py-8">
             <SidebarTrigger className="w-fit md:hidden" />
             {activeMeta ? (
-              <>
-                <div className="flex flex-col gap-1 border-b pb-4">
-                  <p className="text-lg font-semibold">{activeMeta.label}</p>
-                  <p className="text-sm text-muted-foreground">{activeMeta.description}</p>
-                </div>
-                <div className="flex-1">
-                  {ActiveComponent ? <ActiveComponent currentUser={user} /> : null}
-                </div>
-              </>
+              <div className="flex-1">
+                {ActiveComponent ? <ActiveComponent currentUser={user} /> : null}
+              </div>
             ) : (
               <div className="flex flex-1 items-center justify-center text-sm text-muted-foreground">
                 Tidak ada menu yang tersedia.

@@ -20,7 +20,8 @@ const dbPath = path.join(dbDir, dbFile);
 const db = new Database(dbPath);
 
 try {
-  const sql = fs.readFileSync('db.sql', 'utf8');
+  const sqlPath = path.join(__dirname, "..", "db", "db.sql");
+  const sql = fs.readFileSync(sqlPath, "utf8");
   db.exec(sql);
   console.log('Database migration completed successfully.');
 } catch (error) {

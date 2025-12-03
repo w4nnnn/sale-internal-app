@@ -1,5 +1,8 @@
 import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+
 import conn from "@/lib/conn";
+import { authOptions } from "@/lib/auth";
 import { pelangganBodySchema, normalizeNullable } from "../route";
 
 const { run, get } = conn;
@@ -31,6 +34,19 @@ export async function PUT(request, context) {
     return NextResponse.json({ message: "ID pelanggan tidak valid." }, { status: 400 });
   }
 
+  const session = await getServerSession(authOptions);
+
+  if (!session?.user) {
+    return NextResponse.json({ message: "Tidak terautentikasi." }, { status: 401 });
+  }
+
+  const { role, id } = session.user;
+  const userId = Number(id);
+
+  if (Number.isNaN(userId)) {
+    return NextResponse.json({ message: "Identitas pengguna tidak valid." }, { status: 403 });
+  }
+
   try {
     const body = await request.json();
     const parsed = pelangganBodySchema.safeParse({
@@ -46,12 +62,22 @@ export async function PUT(request, context) {
     }
 
     const existing = get(
-      `SELECT pelanggan_id FROM Pelanggan WHERE pelanggan_id = ?`,
+      `SELECT pelanggan_id, added_user_id
+       FROM Pelanggan
+       WHERE pelanggan_id = ?`,
       [pelangganId]
     );
 
     if (!existing) {
       return NextResponse.json({ message: "Pelanggan tidak ditemukan." }, { status: 404 });
+    }
+
+    if (role === "agen") {
+      if (existing.added_user_id !== userId) {
+        return NextResponse.json({ message: "Akses ditolak." }, { status: 403 });
+      }
+    } else if (role !== "admin") {
+      return NextResponse.json({ message: "Akses ditolak." }, { status: 403 });
     }
 
     const payload = parsed.data;
@@ -73,7 +99,7 @@ export async function PUT(request, context) {
     );
 
     const pelanggan = get(
-      `SELECT pelanggan_id, nama_pelanggan, email_pelanggan, perusahaan, telepon_pelanggan
+      `SELECT pelanggan_id, nama_pelanggan, email_pelanggan, perusahaan, telepon_pelanggan, added_user_id
        FROM Pelanggan
        WHERE pelanggan_id = ?`,
       [pelangganId]
@@ -96,14 +122,37 @@ export async function DELETE(request, context) {
     return NextResponse.json({ message: "ID pelanggan tidak valid." }, { status: 400 });
   }
 
+  const session = await getServerSession(authOptions);
+
+  if (!session?.user) {
+    return NextResponse.json({ message: "Tidak terautentikasi." }, { status: 401 });
+  }
+
+  const { role, id } = session.user;
+  const userId = Number(id);
+
+  if (Number.isNaN(userId)) {
+    return NextResponse.json({ message: "Identitas pengguna tidak valid." }, { status: 403 });
+  }
+
   try {
     const existing = get(
-      `SELECT pelanggan_id, nama_pelanggan FROM Pelanggan WHERE pelanggan_id = ?`,
+      `SELECT pelanggan_id, nama_pelanggan, added_user_id
+       FROM Pelanggan
+       WHERE pelanggan_id = ?`,
       [pelangganId]
     );
 
     if (!existing) {
       return NextResponse.json({ message: "Pelanggan tidak ditemukan." }, { status: 404 });
+    }
+
+    if (role === "agen") {
+      if (existing.added_user_id !== userId) {
+        return NextResponse.json({ message: "Akses ditolak." }, { status: 403 });
+      }
+    } else if (role !== "admin") {
+      return NextResponse.json({ message: "Akses ditolak." }, { status: 403 });
     }
 
     run(`DELETE FROM Pelanggan WHERE pelanggan_id = ?`, [pelangganId]);

@@ -43,3 +43,5 @@ next-env.d.ts
 /database
 /.wwebjs_auth
 /.wwebjs_cache
+/auth_info_baileys
+/penyimpanan
