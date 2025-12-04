@@ -19,14 +19,12 @@ export const userBodySchema = z.object({
     .min(3, "Username minimal 3 karakter.")
     .regex(/^\S+$/, "Username tidak boleh mengandung spasi."),
   email_user: z
-    .string({ required_error: "Email wajib diisi." })
-    .trim()
-    .min(1, "Email wajib diisi.")
-    .email("Format email tidak valid."),
-  telepon_user: z
-    .string({ required_error: "Nomor telepon wajib diisi." })
-    .trim()
-    .min(1, "Nomor telepon wajib diisi."),
+    .union([z.string(), z.null()])
+    .optional()
+    .refine((val) => val === null || val === undefined || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val), {
+      message: "Format email tidak valid.",
+    }),
+  telepon_user: z.union([z.string(), z.null()]).optional(),
   role: z.enum(["agen", "admin"], {
     required_error: "Role wajib dipilih.",
   }),
@@ -123,10 +121,9 @@ export async function POST(request) {
       );
     }
 
-    const existingEmail = get(
-      `SELECT user_id FROM Users WHERE LOWER(email_user) = LOWER(?)`,
-      [payload.email_user]
-    );
+    const existingEmail = payload.email_user
+      ? get(`SELECT user_id FROM Users WHERE LOWER(email_user) = LOWER(?)`, [payload.email_user])
+      : null;
 
     if (existingEmail) {
       return NextResponse.json(
@@ -135,10 +132,9 @@ export async function POST(request) {
       );
     }
 
-    const existingTelepon = get(
-      `SELECT user_id FROM Users WHERE telepon_user = ?`,
-      [payload.telepon_user]
-    );
+    const existingTelepon = payload.telepon_user
+      ? get(`SELECT user_id FROM Users WHERE telepon_user = ?`, [payload.telepon_user])
+      : null;
 
     if (existingTelepon) {
       return NextResponse.json(
@@ -155,8 +151,8 @@ export async function POST(request) {
       {
         nama_user: payload.nama_user.trim(),
         username: payload.username.trim(),
-        email_user: payload.email_user.trim(),
-        telepon_user: payload.telepon_user.trim(),
+        email_user: payload.email_user ? payload.email_user.trim() : null,
+        telepon_user: payload.telepon_user ? payload.telepon_user.trim() : null,
         password_hash: passwordHash,
         role: payload.role,
       }

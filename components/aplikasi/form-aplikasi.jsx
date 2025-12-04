@@ -184,6 +184,7 @@ export function FormAplikasiDialog({
 	const [internalOpen, setInternalOpen] = useState(false);
 	const [isUploadingAndroid, setIsUploadingAndroid] = useState(false);
 	const [isUploadingIos, setIsUploadingIos] = useState(false);
+	const [drafts, setDrafts] = useState({ create: null, edit: {} });
 	const currentUserRole = currentUser?.role;
 	const currentUserId = currentUser?.id;
 	const isAgent = currentUserRole === "agen";
@@ -229,6 +230,12 @@ export function FormAplikasiDialog({
 		setInitialLicenseLoaded(false);
 
 		if (isEdit && initialData) {
+			const draft = drafts.edit?.[initialData.app_id];
+			if (draft) {
+				form.reset(draft);
+				return;
+			}
+
 			form.reset({
 				nama_app: initialData.nama_app ?? "",
 				tipe_app: initialData.tipe_app ?? "pelanggan",
@@ -241,10 +248,15 @@ export function FormAplikasiDialog({
 				tanggal_mulai: "",
 				tanggal_habis: "",
 			});
+			return;
+		}
+
+		if (drafts.create) {
+			form.reset(drafts.create);
 		} else {
 			form.reset(defaultValues);
 		}
-	}, [dialogOpen, isEdit, initialData, form]);
+	}, [dialogOpen, isEdit, initialData, form, drafts]);
 
 	useEffect(() => {
 		if (!dialogOpen || !isAgent) {
@@ -378,11 +390,46 @@ export function FormAplikasiDialog({
 		};
 	}, [dialogOpen, isEdit, tipeApp, initialData?.app_id, initialLicenseLoaded, form]);
 
-	const handleDialogChange = (value) => {
+	const handleDialogChange = (value, options = {}) => {
+		const { discardDraft = false } = options;
 		if (!isControlled) {
 			setInternalOpen(value);
 		}
 		if (!value) {
+			const currentValues = form.getValues();
+			const draftKey = isEdit && initialData?.app_id ? initialData.app_id : null;
+
+			if (!discardDraft) {
+				setDrafts((previous) => {
+					if (draftKey !== null) {
+						return {
+							...previous,
+							edit: {
+								...previous.edit,
+								[draftKey]: currentValues,
+							},
+						};
+					}
+					return {
+						...previous,
+						create: currentValues,
+					};
+				});
+			} else if (draftKey !== null) {
+				setDrafts((previous) => {
+					if (!previous.edit?.[draftKey]) {
+						return previous;
+					}
+					const { [draftKey]: _removed, ...rest } = previous.edit;
+					return {
+						...previous,
+						edit: rest,
+					};
+				});
+			} else {
+				setDrafts((previous) => ({ ...previous, create: null }));
+			}
+
 			form.reset(defaultValues);
 			setInitialLicenseLoaded(false);
 			setIsUploadingAndroid(false);
@@ -507,9 +554,8 @@ export function FormAplikasiDialog({
 			}
 
 			const result = await response.json();
-			form.reset(defaultValues);
 			toast.success(isEdit ? "Aplikasi berhasil diperbarui." : "Aplikasi berhasil disimpan.");
-			handleDialogChange(false);
+			handleDialogChange(false, { discardDraft: true });
 
 			if (typeof onSuccess === "function") {
 				onSuccess(result, { mode: isEdit ? "edit" : "create" });

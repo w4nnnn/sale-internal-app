@@ -52,6 +52,7 @@ const defaultValues = {
 export function FormPelangganDialog({ onSuccess, open, onOpenChange, mode = "create", initialData }) {
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [internalOpen, setInternalOpen] = useState(false);
+	const [drafts, setDrafts] = useState({ create: null, edit: {} });
 
 	const isControlled = typeof open === "boolean";
 	const dialogOpen = isControlled ? open : internalOpen;
@@ -68,22 +69,70 @@ export function FormPelangganDialog({ onSuccess, open, onOpenChange, mode = "cre
 		}
 
 		if (isEdit && initialData) {
+			const draft = drafts.edit?.[initialData.pelanggan_id];
+			if (draft) {
+				form.reset(draft);
+				return;
+			}
+
 			form.reset({
 				nama_pelanggan: initialData.nama_pelanggan ?? "",
 				email_pelanggan: initialData.email_pelanggan ?? "",
 				perusahaan: initialData.perusahaan ?? "",
 				telepon_pelanggan: initialData.telepon_pelanggan ?? "",
 			});
+			return;
+		}
+
+		if (drafts.create) {
+			form.reset(drafts.create);
 		} else {
 			form.reset(defaultValues);
 		}
-	}, [dialogOpen, isEdit, initialData, form]);
+	}, [dialogOpen, isEdit, initialData, form, drafts]);
 
-	const handleDialogChange = (value) => {
+	const handleDialogChange = (value, options = {}) => {
+		const { discardDraft = false } = options;
 		if (!isControlled) {
 			setInternalOpen(value);
 		}
 		if (!value) {
+			const currentValues = form.getValues();
+			const draftKey = isEdit && initialData?.pelanggan_id ? initialData.pelanggan_id : null;
+
+			if (!discardDraft) {
+				setDrafts((previous) => {
+					if (draftKey !== null) {
+						return {
+							...previous,
+							edit: {
+								...previous.edit,
+								[draftKey]: currentValues,
+							},
+						};
+					}
+
+					return {
+						...previous,
+						create: currentValues,
+					};
+				});
+			} else if (draftKey !== null) {
+				setDrafts((previous) => {
+					if (!previous.edit?.[draftKey]) {
+						return previous;
+					}
+
+					const { [draftKey]: _removed, ...rest } = previous.edit;
+					return {
+						...previous,
+						edit: rest,
+					};
+				});
+			} else {
+				setDrafts((previous) => ({ ...previous, create: null }));
+			}
+
 			form.reset(defaultValues);
 		}
 		onOpenChange?.(value);
@@ -115,9 +164,8 @@ export function FormPelangganDialog({ onSuccess, open, onOpenChange, mode = "cre
 			}
 
 			const result = await response.json();
-			form.reset(defaultValues);
 			toast.success(isEdit ? "Pelanggan berhasil diperbarui." : "Pelanggan berhasil disimpan.");
-			handleDialogChange(false);
+			handleDialogChange(false, { discardDraft: true });
 
 			if (typeof onSuccess === "function") {
 				onSuccess(result, { mode: isEdit ? "edit" : "create" });

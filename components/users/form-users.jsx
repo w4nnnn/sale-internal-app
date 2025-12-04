@@ -37,6 +37,20 @@ const roleOptions = [
 	{ value: "admin", label: "Admin" },
 ];
 
+// Fungsi untuk normalisasi nomor telepon ke format internasional (Indonesia)
+function normalizePhone(phone) {
+	if (!phone) return null;
+	// Hapus spasi, dash, dll
+	phone = phone.replace(/[\s\-\(\)]/g, '');
+	if (phone.startsWith('0')) {
+		return '62' + phone.slice(1);
+	}
+	if (phone.startsWith('+62')) {
+		return phone.slice(1);
+	}
+	return phone;
+}
+
 const userSchema = z
 	.object({
 		nama_user: z
@@ -49,10 +63,12 @@ const userSchema = z
 			.min(3, "Username minimal 3 karakter.")
 			.regex(/^\S+$/, "Username tidak boleh mengandung spasi."),
 		email_user: z
-			.string({ required_error: "Email wajib diisi." })
+			.string()
 			.trim()
-			.min(1, "Email wajib diisi.")
-			.email("Format email tidak valid."),
+			.optional()
+			.refine((val) => !val || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val), {
+				message: "Format email tidak valid.",
+			}),
 		telepon_user: z.string().trim().optional(),
 		role: z.enum(["agen", "admin"], {
 			required_error: "Role wajib dipilih.",
@@ -102,6 +118,7 @@ const defaultValues = {
 export function FormUserDialog({ onSuccess, open, onOpenChange, mode = "create", initialData }) {
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [internalOpen, setInternalOpen] = useState(false);
+	const [drafts, setDrafts] = useState({ create: null, edit: {} });
 
 	const isControlled = typeof open === "boolean";
 	const dialogOpen = isControlled ? open : internalOpen;
@@ -118,6 +135,12 @@ export function FormUserDialog({ onSuccess, open, onOpenChange, mode = "create",
 		}
 
 		if (isEdit && initialData) {
+			const draft = drafts.edit?.[initialData.user_id];
+			if (draft) {
+				form.reset(draft);
+				return;
+			}
+
 			form.reset({
 				nama_user: initialData.nama_user ?? "",
 				username: initialData.username ?? "",
@@ -127,16 +150,59 @@ export function FormUserDialog({ onSuccess, open, onOpenChange, mode = "create",
 				password: "",
 				confirm_password: "",
 			});
+			return;
+		}
+
+		if (drafts.create) {
+			form.reset(drafts.create);
 		} else {
 			form.reset(defaultValues);
 		}
-	}, [dialogOpen, isEdit, initialData, form]);
+	}, [dialogOpen, isEdit, initialData, form, drafts]);
 
-	const handleDialogChange = (value) => {
+	const handleDialogChange = (value, options = {}) => {
+		const { discardDraft = false } = options;
 		if (!isControlled) {
 			setInternalOpen(value);
 		}
+
 		if (!value) {
+			const currentValues = form.getValues();
+			const draftKey = isEdit && initialData?.user_id ? initialData.user_id : null;
+
+			if (!discardDraft) {
+				setDrafts((previous) => {
+					if (draftKey !== null) {
+						return {
+							...previous,
+							edit: {
+								...previous.edit,
+								[draftKey]: currentValues,
+							},
+						};
+					}
+
+					return {
+						...previous,
+						create: currentValues,
+					};
+				});
+			} else if (draftKey !== null) {
+				setDrafts((previous) => {
+					if (!previous.edit?.[draftKey]) {
+						return previous;
+					}
+
+					const { [draftKey]: _removed, ...rest } = previous.edit;
+					return {
+						...previous,
+						edit: rest,
+					};
+				});
+			} else {
+				setDrafts((previous) => ({ ...previous, create: null }));
+			}
+
 			form.reset(defaultValues);
 		}
 		onOpenChange?.(value);
@@ -160,8 +226,8 @@ export function FormUserDialog({ onSuccess, open, onOpenChange, mode = "create",
 			const payload = {
 				nama_user: values.nama_user.trim(),
 				username: values.username.trim(),
-				email_user: values.email_user.trim(),
-				telepon_user: values.telepon_user?.trim() || null,
+				email_user: values.email_user?.trim() || null,
+				telepon_user: normalizePhone(values.telepon_user?.trim()),
 				role: values.role,
 			};
 
@@ -184,9 +250,8 @@ export function FormUserDialog({ onSuccess, open, onOpenChange, mode = "create",
 			}
 
 			const result = await response.json();
-			form.reset(defaultValues);
 			toast.success(isEdit ? "Pengguna berhasil diperbarui." : "Pengguna berhasil disimpan.");
-			handleDialogChange(false);
+			handleDialogChange(false, { discardDraft: true });
 
 			if (typeof onSuccess === "function") {
 				onSuccess(result, { mode: isEdit ? "edit" : "create" });

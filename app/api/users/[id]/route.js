@@ -152,10 +152,9 @@ export async function PUT(request, context) {
 			);
 		}
 
-		const existingEmail = get(
-			`SELECT user_id FROM Users WHERE LOWER(email_user) = LOWER(?) AND user_id != ?`,
-			[payload.email_user, userId]
-		);
+		const existingEmail = payload.email_user
+			? get(`SELECT user_id FROM Users WHERE LOWER(email_user) = LOWER(?) AND user_id != ?`, [payload.email_user, userId])
+			: null;
 
 		if (existingEmail) {
 			return NextResponse.json(
@@ -164,10 +163,9 @@ export async function PUT(request, context) {
 			);
 		}
 
-		const existingTelepon = get(
-			`SELECT user_id FROM Users WHERE telepon_user = ? AND user_id != ?`,
-			[payload.telepon_user, userId]
-		);
+		const existingTelepon = payload.telepon_user
+			? get(`SELECT user_id FROM Users WHERE telepon_user = ? AND user_id != ?`, [payload.telepon_user, userId])
+			: null;
 
 		if (existingTelepon) {
 			return NextResponse.json(
@@ -180,8 +178,8 @@ export async function PUT(request, context) {
 			user_id: userId,
 			nama_user: payload.nama_user.trim(),
 			username: payload.username.trim(),
-			email_user: payload.email_user.trim(),
-			telepon_user: payload.telepon_user.trim(),
+			email_user: payload.email_user ? payload.email_user.trim() : null,
+			telepon_user: payload.telepon_user ? payload.telepon_user.trim() : null,
 			role: roleToApply,
 		};
 
