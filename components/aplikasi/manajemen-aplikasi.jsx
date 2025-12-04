@@ -6,7 +6,6 @@ import {
 	LayoutDashboardIcon,
 	PencilIcon,
 	PlusIcon,
-	RefreshCwIcon,
 	TrashIcon,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -118,7 +117,7 @@ export function ManajemenAplikasi({ currentUser }) {
 
 	const renderStatusRow = (message) => (
 		<TableRow>
-			<TableCell colSpan={8} className="py-6 text-center text-muted-foreground">
+			<TableCell colSpan={5} className="py-6 text-center text-muted-foreground">
 				{message}
 			</TableCell>
 		</TableRow>
@@ -132,10 +131,6 @@ export function ManajemenAplikasi({ currentUser }) {
 					<span>Kelola daftar aplikasi beserta detail distribusinya.</span>
 				</div>
 				<div className="flex flex-wrap items-center gap-2">
-					<Button type="button" variant="outline" onClick={fetchData} disabled={isLoading}>
-						<RefreshCwIcon className="size-4" />
-						Muat Ulang
-					</Button>
 					{canManage ? (
 						<Button
 							type="button"
@@ -159,10 +154,7 @@ export function ManajemenAplikasi({ currentUser }) {
 							<TableHead>No</TableHead>
 							<TableHead>Nama</TableHead>
 							<TableHead>Tipe</TableHead>
-							<TableHead>Deskripsi</TableHead>
 							<TableHead>Link Web</TableHead>
-							<TableHead>Path iOS</TableHead>
-							<TableHead>Path Android</TableHead>
 							<TableHead className="text-center">Aksi</TableHead>
 						</TableRow>
 					</TableHeader>
@@ -184,9 +176,6 @@ export function ManajemenAplikasi({ currentUser }) {
 									<TableCell>{index + 1}</TableCell>
 									<TableCell className="font-medium">{item.nama_app}</TableCell>
 									<TableCell className="capitalize">{item.tipe_app}</TableCell>
-									<TableCell className="max-w-xs whitespace-normal text-muted-foreground">
-										{item.deskripsi ?? "-"}
-									</TableCell>
 									<TableCell>
 										{item.link_web ? (
 											<a
@@ -203,8 +192,6 @@ export function ManajemenAplikasi({ currentUser }) {
 											"-"
 										)}
 									</TableCell>
-									<TableCell>{item.path_ios ?? "-"}</TableCell>
-									<TableCell>{item.path_android ?? "-"}</TableCell>
 									<TableCell className="text-center">
 										{canManage ? (
 											<div className="flex justify-center gap-2">
@@ -230,7 +217,7 @@ export function ManajemenAplikasi({ currentUser }) {
 														setDeleteTarget(item);
 													}}
 												>
-													<TrashIcon className="size-4" />
+													<TrashIcon className="size-4 text-destructive" />
 												</Button>
 											</div>
 										) : (

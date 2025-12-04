@@ -14,6 +14,20 @@ module.exports = {
       // --- RESTART OTOMATIS SETIAP HARI PUKUL 10:00 ---
       // Pola cron '0 10 * * *' berarti "jalankan pada menit ke-0, jam ke-10 setiap hari".
       cron_restart: '0 10 * * *',
+    },
+    {
+      name: 'pengingat-lisensi',
+      script: 'node',
+      args: 'scripts/pengingat.js',
+
+      // Jalankan sekali sehari pukul 09:00
+      cron_restart: '0 9 * * *',
+
+      // Jangan restart otomatis jika crash
+      autorestart: false,
+
+      // Jangan pantau perubahan file
+      watch: false,
     }
   ]
 };

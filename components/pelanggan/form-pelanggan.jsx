@@ -159,7 +159,7 @@ export function FormPelangganDialog({ onSuccess, open, onOpenChange, mode = "cre
 								<FormItem>
 									<FormLabel>Nama Pelanggan</FormLabel>
 									<FormControl>
-										<Input placeholder="Hartono Subianto" {...field} />
+										<Input placeholder="Nama Pelanggan" {...field} />
 									</FormControl>
 									<FormMessage />
 								</FormItem>
@@ -173,7 +173,7 @@ export function FormPelangganDialog({ onSuccess, open, onOpenChange, mode = "cre
 								<FormItem>
 									<FormLabel>Email</FormLabel>
 									<FormControl>
-										<Input type="email" placeholder="contoh@perusahaan.com" {...field} />
+										<Input type="email" placeholder="Email Pelanggan" {...field} />
 									</FormControl>
 									<FormMessage />
 								</FormItem>
@@ -187,7 +187,7 @@ export function FormPelangganDialog({ onSuccess, open, onOpenChange, mode = "cre
 								<FormItem>
 									<FormLabel>Perusahaan</FormLabel>
 									<FormControl>
-										<Input placeholder="PT Sukses Makmur" {...field} />
+										<Input placeholder="Perusahaan" {...field} />
 									</FormControl>
 									<FormMessage />
 								</FormItem>
@@ -201,7 +201,7 @@ export function FormPelangganDialog({ onSuccess, open, onOpenChange, mode = "cre
 								<FormItem>
 									<FormLabel>Nomor Telepon</FormLabel>
 									<FormControl>
-										<Input placeholder="08xxxxxxxxxx" {...field} />
+										<Input placeholder="Nomor Telepon" {...field} />
 									</FormControl>
 									<FormMessage />
 								</FormItem>

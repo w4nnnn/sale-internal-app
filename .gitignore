@@ -45,3 +45,4 @@ next-env.d.ts
 /.wwebjs_cache
 /auth_info_baileys
 /penyimpanan
+/wa_session

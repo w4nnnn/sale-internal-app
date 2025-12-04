@@ -551,7 +551,7 @@ export function FormAplikasiDialog({
 								<FormItem>
 									<FormLabel>Nama Aplikasi</FormLabel>
 									<FormControl>
-										<Input placeholder="Contoh: Sales App" {...field} />
+										<Input placeholder="Nama Aplikasi" {...field} />
 									</FormControl>
 									<FormMessage />
 								</FormItem>
@@ -768,7 +768,7 @@ export function FormAplikasiDialog({
 								<FormItem>
 									<FormLabel>Deskripsi</FormLabel>
 									<FormControl>
-										<Textarea placeholder="Tuliskan deskripsi singkat aplikasi" {...field} />
+										<Textarea placeholder="Deskripsi aplikasi" {...field} />
 									</FormControl>
 									<FormMessage />
 								</FormItem>
@@ -782,7 +782,7 @@ export function FormAplikasiDialog({
 								<FormItem>
 									<FormLabel>Link Web</FormLabel>
 									<FormControl>
-										<Input placeholder="https://contoh.com" {...field} />
+										<Input placeholder="Link Web" {...field} />
 									</FormControl>
 									<FormMessage />
 								</FormItem>

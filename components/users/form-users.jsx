@@ -228,7 +228,7 @@ export function FormUserDialog({ onSuccess, open, onOpenChange, mode = "create",
 								<FormItem>
 									<FormLabel>Nama Lengkap</FormLabel>
 									<FormControl>
-										<Input placeholder="Contoh: Andi Wijaya" {...field} />
+										<Input placeholder="Nama Lengkap" {...field} />
 									</FormControl>
 									<FormMessage />
 								</FormItem>
@@ -242,7 +242,7 @@ export function FormUserDialog({ onSuccess, open, onOpenChange, mode = "create",
 								<FormItem>
 									<FormLabel>Username</FormLabel>
 									<FormControl>
-										<Input placeholder="Contoh: admin" {...field} />
+										<Input placeholder="Username" {...field} />
 									</FormControl>
 									<FormMessage />
 								</FormItem>
@@ -256,7 +256,7 @@ export function FormUserDialog({ onSuccess, open, onOpenChange, mode = "create",
 								<FormItem>
 									<FormLabel>Email</FormLabel>
 									<FormControl>
-										<Input type="email" placeholder="admin@example.com" {...field} />
+										<Input type="email" placeholder="Email Pengguna" {...field} />
 									</FormControl>
 									<FormMessage />
 								</FormItem>
@@ -270,7 +270,7 @@ export function FormUserDialog({ onSuccess, open, onOpenChange, mode = "create",
 								<FormItem>
 									<FormLabel>Nomor Telepon</FormLabel>
 									<FormControl>
-										<Input placeholder="08xxxxxxxxxx" {...field} />
+										<Input placeholder="Nomor Telepon" {...field} />
 									</FormControl>
 									<FormMessage />
 								</FormItem>
@@ -307,7 +307,7 @@ export function FormUserDialog({ onSuccess, open, onOpenChange, mode = "create",
 							name="password"
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel>Kata Sandi {isEdit ? "(opsional)" : ""}</FormLabel>
+									<FormLabel>Kata Sandi {isEdit ? "Baru" : ""}</FormLabel>
 									<FormControl>
 										<Input type="password" placeholder={isEdit ? "Biarkan kosong jika tidak ingin mengubah" : "Minimal 8 karakter"} {...field} />
 									</FormControl>

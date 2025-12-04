@@ -2,7 +2,13 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { signOut } from "next-auth/react";
-import { HomeIcon, LogOutIcon, LayoutDashboardIcon, UserCogIcon, UsersIcon } from "lucide-react";
+import {
+  HomeIcon,
+  LogOutIcon,
+  LayoutDashboardIcon,
+  UserCogIcon,
+  UsersIcon,
+} from "lucide-react";
 
 import {
   Sidebar,
@@ -18,7 +24,6 @@ import {
   SidebarMenuItem,
   SidebarProvider,
   SidebarRail,
-  SidebarSeparator,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";

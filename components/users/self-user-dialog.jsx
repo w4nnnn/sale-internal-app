@@ -297,7 +297,7 @@ export function SelfUserDialog({
                 <FormItem>
                   <FormLabel>Nama Lengkap</FormLabel>
                   <FormControl>
-                    <Input placeholder="Contoh: Andi Wijaya" disabled={isFormBusy} {...field} />
+                    <Input placeholder="Nama Lengkap" disabled={isFormBusy} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -311,7 +311,7 @@ export function SelfUserDialog({
                 <FormItem>
                   <FormLabel>Username</FormLabel>
                   <FormControl>
-                    <Input placeholder="Contoh: agen1" disabled={isFormBusy} {...field} />
+                    <Input placeholder="Username" disabled={isFormBusy} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -325,7 +325,7 @@ export function SelfUserDialog({
                 <FormItem>
                   <FormLabel>Email</FormLabel>
                   <FormControl>
-                    <Input type="email" placeholder="contoh@perusahaan.com" disabled={isFormBusy} {...field} />
+                    <Input type="email" placeholder="Email Pengguna" disabled={isFormBusy} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -339,7 +339,7 @@ export function SelfUserDialog({
                 <FormItem>
                   <FormLabel>Nomor Telepon</FormLabel>
                   <FormControl>
-                    <Input placeholder="08xxxxxxxxxx" disabled={isFormBusy} {...field} />
+                    <Input placeholder="Nomor Telepon" disabled={isFormBusy} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

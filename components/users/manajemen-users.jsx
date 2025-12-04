@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { PencilIcon, PlusIcon, RefreshCwIcon, TrashIcon, UserCogIcon } from "lucide-react";
+import { PencilIcon, PlusIcon, TrashIcon, UserCogIcon } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -131,10 +131,6 @@ export function ManajemenUser() {
 					<span>Kelola akun internal dan hak akses.</span>
 				</div>
 				<div className="flex flex-wrap items-center gap-2">
-					<Button type="button" variant="outline" onClick={fetchData} disabled={isLoading}>
-						<RefreshCwIcon className="size-4" />
-						Muat Ulang
-					</Button>
 					<Button
 						type="button"
 						onClick={() => {
@@ -209,7 +205,7 @@ export function ManajemenUser() {
 													setDeleteTarget(item);
 												}}
 											>
-												<TrashIcon className="size-4" />
+												<TrashIcon className="size-4 text-destructive" />
 											</Button>
 										</div>
 									</TableCell>

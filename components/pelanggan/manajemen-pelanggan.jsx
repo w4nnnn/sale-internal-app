@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { PencilIcon, PlusIcon, RefreshCwIcon, TrashIcon, UsersIcon } from "lucide-react";
+import { PencilIcon, PlusIcon, TrashIcon, UsersIcon } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -127,10 +127,6 @@ export function ManajemenPelanggan() {
 					<span>Kelola data pelanggan dan informasi kontak.</span>
 				</div>
 				<div className="flex flex-wrap items-center gap-2">
-					<Button type="button" variant="outline" onClick={fetchData} disabled={isLoading}>
-						<RefreshCwIcon className="size-4" />
-						Muat Ulang
-					</Button>
 					<Button
 						type="button"
 						onClick={() => {
@@ -201,7 +197,7 @@ export function ManajemenPelanggan() {
 													setDeleteTarget(item);
 												}}
 											>
-												<TrashIcon className="size-4" />
+												<TrashIcon className="size-4 text-destructive" />
 											</Button>
 										</div>
 									</TableCell>
