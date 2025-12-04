@@ -66,7 +66,7 @@ async function sendReminders() {
 
     // Query lisensi yang habis dalam 3 hari dan belum dikirim pengingat
     const licenses = all(`
-      SELECT l.lisensi_id, l.tanggal_habis, p.nama_pelanggan, u.nama_user, u.telepon_user, a.nama_app
+      SELECT l.lisensi_id, l.tanggal_habis, p.nama_pelanggan, p.telepon_pelanggan, u.nama_user, u.telepon_user, a.nama_app
       FROM Lisensi l
       JOIN Pelanggan p ON l.pelanggan_id = p.pelanggan_id
       JOIN Aplikasi a ON l.app_id = a.app_id
@@ -77,7 +77,8 @@ async function sendReminders() {
     console.log(`Found ${licenses.length} licenses expiring on ${reminderDateStr}`);
 
     for (const license of licenses) {
-      const message = `Halo ${license.nama_user},\n\nLisensi aplikasi "${license.nama_app}" untuk pelanggan "${license.nama_pelanggan}" akan habis pada ${license.tanggal_habis}.\nSilakan ikuti upaya perpanjangan.\n\nTerima kasih.`;
+      const normalizedCustomerPhone = normalizePhone(license.telepon_pelanggan);
+      const message = `Halo ${license.nama_user},\n\nLisensi aplikasi "${license.nama_app}" untuk pelanggan "${license.nama_pelanggan}" akan habis pada ${license.tanggal_habis}.\nKontak pelanggan: ${normalizedCustomerPhone || 'Tidak tersedia'}\nSilakan ikuti upaya perpanjangan.\n\nTerima kasih.`;
 
       try {
         const normalizedPhone = normalizePhone(license.telepon_user);

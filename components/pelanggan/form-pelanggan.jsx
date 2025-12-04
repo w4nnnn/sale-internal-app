@@ -42,6 +42,20 @@ const pelangganSchema = z.object({
 	telepon_pelanggan: z.string().trim().optional(),
 });
 
+// Fungsi untuk normalisasi nomor telepon ke format internasional (Indonesia)
+function normalizePhone(phone) {
+	if (!phone) return null;
+	// Hapus spasi, dash, dll
+	phone = phone.replace(/[\s\-\(\)]/g, '');
+	if (phone.startsWith('0')) {
+		return '62' + phone.slice(1);
+	}
+	if (phone.startsWith('+62')) {
+		return phone.slice(1);
+	}
+	return phone;
+}
+
 const defaultValues = {
 	nama_pelanggan: "",
 	email_pelanggan: "",
@@ -146,7 +160,7 @@ export function FormPelangganDialog({ onSuccess, open, onOpenChange, mode = "cre
 				nama_pelanggan: values.nama_pelanggan.trim(),
 				email_pelanggan: values.email_pelanggan?.trim() || null,
 				perusahaan: values.perusahaan?.trim() || null,
-				telepon_pelanggan: values.telepon_pelanggan?.trim() || null,
+				telepon_pelanggan: normalizePhone(values.telepon_pelanggan?.trim()),
 			};
 
 			const endpoint = isEdit ? `/api/pelanggan/${initialData.pelanggan_id}` : "/api/pelanggan";

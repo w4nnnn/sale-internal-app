@@ -23,6 +23,8 @@ import {
 	AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
+import { Badge } from "@/components/ui/badge";
+
 import { FormAplikasiDialog } from "./form-aplikasi";
 import DetailAplikasiDialog from "./detail-aplikasi";
 
@@ -38,6 +40,19 @@ export function ManajemenAplikasi({ currentUser }) {
 	const [detailOpen, setDetailOpen] = useState(false);
 	const [detailAplikasi, setDetailAplikasi] = useState(null);
 	const canManage = currentUser?.role === "admin";
+
+	const getBadgeVariant = (tipe) => {
+		switch (tipe) {
+			case 'demo':
+				return 'secondary';
+			case 'pelanggan':
+				return 'default';
+			case 'admin':
+				return 'outline';
+			default:
+				return 'outline';
+		}
+	};
 
 	const fetchData = useCallback(async () => {
 		setIsLoading(true);
@@ -175,11 +190,15 @@ export function ManajemenAplikasi({ currentUser }) {
 								>
 									<TableCell>{index + 1}</TableCell>
 									<TableCell className="font-medium">{item.nama_app}</TableCell>
-									<TableCell className="capitalize">{item.tipe_app}</TableCell>
+									<TableCell>
+										<Badge variant={getBadgeVariant(item.tipe_app)} className="capitalize">
+											{item.tipe_app}
+										</Badge>
+									</TableCell>
 									<TableCell>
 										{item.link_web ? (
 											<a
-												href={item.link_web}
+												href={item.link_web.startsWith('http') ? item.link_web : `https://${item.link_web}`}
 												target="_blank"
 												rel="noopener noreferrer"
 												onClick={(event) => event.stopPropagation()}

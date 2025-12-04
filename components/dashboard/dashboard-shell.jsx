@@ -177,7 +177,10 @@ export function DashboardShell({
                 {currentUser?.name ?? currentUser?.nama_user ?? "Pengguna"}
               </p>
               {roleLabel ? (
-                <Badge variant="outline" className="mt-1 uppercase tracking-wide">
+                <Badge 
+                  variant="outline"
+                  className={`mt-1 uppercase tracking-wide ${currentUser.role === 'admin' ? 'bg-blue-500 text-white border-blue-500' : currentUser.role === 'agen' ? 'bg-green-500 text-white border-green-500' : ''}`}
+                >
                   {roleLabel}
                 </Badge>
               ) : (
