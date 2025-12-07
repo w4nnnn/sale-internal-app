@@ -118,10 +118,10 @@ export function DetailAplikasiDialog({ aplikasi, open, onOpenChange }) {
 
 			const fetchNames = async (licenseData) => {
 				try {
-						const [usersRes, pelangganRes] = await Promise.all([
-							fetch("/api/users"),
-							fetch("/api/pelanggan")
-						]);
+					const [usersRes, pelangganRes] = await Promise.all([
+						fetch("/api/users"),
+						fetch("/api/pelanggan")
+					]);
 
 					if (usersRes.ok && pelangganRes.ok) {
 						const usersPayload = await usersRes.json();
@@ -207,7 +207,7 @@ export function DetailAplikasiDialog({ aplikasi, open, onOpenChange }) {
 			return;
 		}
 
-	const targetUrl = toAbsoluteUrl(url);
+		const targetUrl = toAbsoluteUrl(url);
 
 		try {
 			if (navigator?.clipboard?.writeText) {
@@ -317,239 +317,255 @@ export function DetailAplikasiDialog({ aplikasi, open, onOpenChange }) {
 						</div>
 					</DialogHeader>
 
-				{!aplikasi ? (
-					<p className="text-muted-foreground text-sm">Data aplikasi tidak tersedia.</p>
-				) : (
-					<div className="space-y-3">
-						<Card>
-							<CardHeader>
-								<CardTitle className="text-lg flex items-center gap-1">
-									<PackageIcon className="h-5 w-5" />
-									Informasi Aplikasi
-								</CardTitle>
-							</CardHeader>
-							<CardContent>
-								<div className="grid gap-2 sm:grid-cols-2">
-									{normalizedFields.map((field) => {
-										const Icon = field.icon;
-										return (
-											<div key={field.key} className="flex items-start gap-3 p-3 rounded-lg bg-muted/30">
-												<div className="p-1.5 bg-background rounded-md">
-													<Icon className="h-4 w-4 text-muted-foreground" />
-												</div>
-												<div className="flex-1 min-w-0">
-													<dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-1">
-														{field.label}
-													</dt>
-													<dd className="text-sm text-foreground break-words">
-														{field.key === "tipe_app" && field.value ? (
-															<Badge variant="secondary" className="capitalize">
-																{field.value}
-															</Badge>
-														) : field.key === "link_web" && field.value ? (
-															<a
-																href={formatValue(field.key, field.value)}
-																target="_blank"
-																rel="noopener noreferrer"
-																className="text-primary hover:underline flex items-center gap-1"
-															>
-																<GlobeIcon className="size-3.5" />
-																Kunjungi
-															</a>
-														) : (field.key === "path_ios" || field.key === "path_android") && field.value ? (
-															(() => {
-																const downloadUrl = resolveDownloadUrl(field.value);
-
-																if (!downloadUrl) {
-																	return <span className="text-muted-foreground">-</span>;
-																}
-
-																const isIos = field.key === "path_ios";
-																const label = isIos ? "File IPA" : "File APK";
-
-																return (
-																	<div className="flex flex-wrap items-center gap-2">
-																		<Button asChild size="sm" className="gap-1.5" variant="link">
-																			<a
-																				href={downloadUrl}
-																				target="_blank"
-																				rel="noopener noreferrer"
-																				download
-																				className="inline-flex items-center gap-1.5"
-																			>
-																				<DownloadIcon className="size-3.5" />
-																				<span>Unduh</span>
-																			</a>
-																		</Button>
-																		<Button
-																			type="button"
-																			variant="link"
-																			size="sm"
-																			className="gap-1.5"
-																			onClick={() => handleCopyLink(downloadUrl)}
-																		>
-																			<CopyIcon className="size-3.5" />
-																			<span>Salin link</span>
-																		</Button>
-																		<Button
-																			type="button"
-																			variant="link"
-																			size="sm"
-																			className="gap-1.5"
-																			onClick={() => handleOpenQrPreview(downloadUrl, label)}
-																		>
-																			<QrCodeIcon className="size-3.5" />
-																			<span>QR code</span>
-																		</Button>
-																	</div>
-																);
-															})()
-														) : field.value ? (
-															field.value
-														) : (
-															<span className="text-muted-foreground">-</span>
-														)}
-													</dd>
-												</div>
-											</div>
-										);
-									})}
-								</div>
-							</CardContent>
-						</Card>
-
-						{aplikasi.tipe_app === "pelanggan" ? (
+					{!aplikasi ? (
+						<p className="text-muted-foreground text-sm">Data aplikasi tidak tersedia.</p>
+					) : (
+						<div className="space-y-3">
 							<Card>
 								<CardHeader>
-									<CardTitle className="text-lg flex items-center gap-2">
-										<UsersIcon className="h-5 w-5" />
-										Lisensi Terbaru
+									<CardTitle className="text-lg flex items-center gap-1">
+										<PackageIcon className="h-5 w-5" />
+										Informasi Aplikasi
 									</CardTitle>
 								</CardHeader>
 								<CardContent>
-									{isLoadingLicense ? (
-										<div className="flex items-center gap-2 text-muted-foreground">
-											<div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
-											Memuat data lisensi...
-										</div>
-									) : licenseError ? (
-										<div className="p-4 bg-destructive/10 border border-destructive/20 rounded-lg">
-											<p className="text-destructive text-sm">{licenseError}</p>
-										</div>
-									) : license ? (
-										<div className="grid gap-2 sm:grid-cols-2">
-											<div className="flex items-start gap-3 p-3 rounded-lg bg-muted/30">
-												<div className="p-1.5 bg-background rounded-md">
-													<UsersIcon className="h-4 w-4 text-muted-foreground" />
+									<div className="grid gap-2 sm:grid-cols-2">
+										{normalizedFields.map((field) => {
+											const Icon = field.icon;
+											return (
+												<div key={field.key} className="flex items-start gap-3 p-3 rounded-lg bg-muted/30">
+													<div className="p-1.5 bg-background rounded-md">
+														<Icon className="h-4 w-4 text-muted-foreground" />
+													</div>
+													<div className="flex-1 min-w-0">
+														<dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-1">
+															{field.label}
+														</dt>
+														<dd className="text-sm text-foreground break-words">
+															{field.key === "tipe_app" && field.value ? (
+																<Badge variant="secondary" className="capitalize">
+																	{field.value}
+																</Badge>
+															) : field.key === "link_web" && field.value ? (
+																<div className="flex flex-wrap items-center gap-2">
+																	<Button asChild size="sm" className="gap-1.5" variant="link">
+																		<a
+																			href={formatValue(field.key, field.value)}
+																			target="_blank"
+																			rel="noopener noreferrer"
+																			className="text-primary hover:underline flex items-center gap-1"
+																		>
+																			<GlobeIcon className="size-3.5" />
+																			<span>Kunjungi</span>
+																		</a>
+																	</Button>
+																	<Button
+																		type="button"
+																		variant="link"
+																		size="sm"
+																		className="gap-1.5"
+																		onClick={() =>
+																			handleOpenQrPreview(formatValue(field.key, field.value), "Link Web")
+																		}
+																	>
+																		<QrCodeIcon className="size-3.5" />
+																		<span>QR code</span>
+																	</Button>
+																</div>
+															) : (field.key === "path_ios" || field.key === "path_android") && field.value ? (
+																(() => {
+																	const downloadUrl = resolveDownloadUrl(field.value);
+
+																	if (!downloadUrl) {
+																		return <span className="text-muted-foreground">-</span>;
+																	}
+
+																	const isIos = field.key === "path_ios";
+																	const label = isIos ? "File IPA" : "File APK";
+
+																	return (
+																		<div className="flex flex-wrap items-center gap-2">
+																			<Button asChild size="sm" className="gap-1.5" variant="link">
+																				<a
+																					href={downloadUrl}
+																					target="_blank"
+																					rel="noopener noreferrer"
+																					download
+																					className="inline-flex items-center gap-1.5"
+																				>
+																					<DownloadIcon className="size-3.5" />
+																					<span>Unduh</span>
+																				</a>
+																			</Button>
+																			<Button
+																				type="button"
+																				variant="link"
+																				size="sm"
+																				className="gap-1.5"
+																				onClick={() => handleCopyLink(downloadUrl)}
+																			>
+																				<CopyIcon className="size-3.5" />
+																				<span>Salin link</span>
+																			</Button>
+																			<Button
+																				type="button"
+																				variant="link"
+																				size="sm"
+																				className="gap-1.5"
+																				onClick={() => handleOpenQrPreview(downloadUrl, label)}
+																			>
+																				<QrCodeIcon className="size-3.5" />
+																				<span>QR code</span>
+																			</Button>
+																		</div>
+																	);
+																})()
+															) : field.value ? (
+																field.value
+															) : (
+																<span className="text-muted-foreground">-</span>
+															)}
+														</dd>
+													</div>
 												</div>
-												<div className="flex-1">
-													<dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-1">
-														Pelanggan
-													</dt>
-													<dd className="text-sm text-foreground font-medium">
-														{pelangganName || license.pelanggan_id}
-													</dd>
-												</div>
-											</div>
-											<div className="flex items-start gap-3 p-3 rounded-lg bg-muted/30">
-												<div className="p-1.5 bg-background rounded-md">
-													<UserIcon className="h-4 w-4 text-muted-foreground" />
-												</div>
-												<div className="flex-1">
-													<dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-1">
-														User Penanggung Jawab
-													</dt>
-													<dd className="text-sm text-foreground font-medium">
-														{userName || license.user_id}
-													</dd>
-												</div>
-											</div>
-											<div className="flex items-start gap-3 p-3 rounded-lg bg-muted/30">
-												<div className="p-1.5 bg-background rounded-md">
-													<CalendarIcon className="h-4 w-4 text-muted-foreground" />
-												</div>
-												<div className="flex-1">
-													<dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-1">
-														Tanggal Mulai
-													</dt>
-													<dd className="text-sm text-foreground">
-														{license.tanggal_mulai
-															? dateFormatter.format(new Date(license.tanggal_mulai))
-															: <span className="text-muted-foreground">-</span>}
-													</dd>
-												</div>
-											</div>
-											<div className="flex items-start gap-3 p-3 rounded-lg bg-muted/30">
-												<div className="p-1.5 bg-background rounded-md">
-													<CalendarIcon className="h-4 w-4 text-muted-foreground" />
-												</div>
-												<div className="flex-1">
-													<dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-1">
-														Tanggal Habis
-													</dt>
-													<dd className="text-sm text-foreground">
-														{license.tanggal_habis
-															? dateFormatter.format(new Date(license.tanggal_habis))
-															: <span className="text-muted-foreground">-</span>}
-													</dd>
-												</div>
-											</div>
-										</div>
-									) : (
-										<div className="p-4 bg-muted/30 rounded-lg text-center">
-											<PackageIcon className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
-											<p className="text-muted-foreground text-sm">Belum ada data lisensi.</p>
-										</div>
-									)}
+											);
+										})}
+									</div>
 								</CardContent>
 							</Card>
-						) : null}
-					</div>
-				)}
 
-				<DialogFooter className="pt-6">
-					<Button type="button" variant="outline" onClick={() => onOpenChange?.(false)}>
-						Tutup
-					</Button>
-				</DialogFooter>
-			</DialogContent>
-		</Dialog>
-		<Dialog modal={false} open={qrDialogOpen} onOpenChange={handleQrDialogOpenChange}>
-			<DialogContent className="max-w-sm" showCloseButton>
-				<DialogHeader>
-					<DialogTitle>Kode QR</DialogTitle>
-					<DialogDescription>
-						Pindai atau unduh kode QR untuk {qrPreview?.label?.toLowerCase() || "tautan"}.
-					</DialogDescription>
-				</DialogHeader>
-				{qrPreview ? (
-					<div className="flex flex-col items-center gap-4">
-						<div className="rounded-lg bg-white p-4 shadow-sm">
-							<QRCode ref={qrSvgRef} value={qrPreview.url} size={220} />
+							{aplikasi.tipe_app === "pelanggan" ? (
+								<Card>
+									<CardHeader>
+										<CardTitle className="text-lg flex items-center gap-2">
+											<UsersIcon className="h-5 w-5" />
+											Lisensi Terbaru
+										</CardTitle>
+									</CardHeader>
+									<CardContent>
+										{isLoadingLicense ? (
+											<div className="flex items-center gap-2 text-muted-foreground">
+												<div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+												Memuat data lisensi...
+											</div>
+										) : licenseError ? (
+											<div className="p-4 bg-destructive/10 border border-destructive/20 rounded-lg">
+												<p className="text-destructive text-sm">{licenseError}</p>
+											</div>
+										) : license ? (
+											<div className="grid gap-2 sm:grid-cols-2">
+												<div className="flex items-start gap-3 p-3 rounded-lg bg-muted/30">
+													<div className="p-1.5 bg-background rounded-md">
+														<UsersIcon className="h-4 w-4 text-muted-foreground" />
+													</div>
+													<div className="flex-1">
+														<dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-1">
+															Pelanggan
+														</dt>
+														<dd className="text-sm text-foreground font-medium">
+															{pelangganName || license.pelanggan_id}
+														</dd>
+													</div>
+												</div>
+												<div className="flex items-start gap-3 p-3 rounded-lg bg-muted/30">
+													<div className="p-1.5 bg-background rounded-md">
+														<UserIcon className="h-4 w-4 text-muted-foreground" />
+													</div>
+													<div className="flex-1">
+														<dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-1">
+															User Penanggung Jawab
+														</dt>
+														<dd className="text-sm text-foreground font-medium">
+															{userName || license.user_id}
+														</dd>
+													</div>
+												</div>
+												<div className="flex items-start gap-3 p-3 rounded-lg bg-muted/30">
+													<div className="p-1.5 bg-background rounded-md">
+														<CalendarIcon className="h-4 w-4 text-muted-foreground" />
+													</div>
+													<div className="flex-1">
+														<dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-1">
+															Tanggal Mulai
+														</dt>
+														<dd className="text-sm text-foreground">
+															{license.tanggal_mulai
+																? dateFormatter.format(new Date(license.tanggal_mulai))
+																: <span className="text-muted-foreground">-</span>}
+														</dd>
+													</div>
+												</div>
+												<div className="flex items-start gap-3 p-3 rounded-lg bg-muted/30">
+													<div className="p-1.5 bg-background rounded-md">
+														<CalendarIcon className="h-4 w-4 text-muted-foreground" />
+													</div>
+													<div className="flex-1">
+														<dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-1">
+															Tanggal Habis
+														</dt>
+														<dd className="text-sm text-foreground">
+															{license.tanggal_habis
+																? dateFormatter.format(new Date(license.tanggal_habis))
+																: <span className="text-muted-foreground">-</span>}
+														</dd>
+													</div>
+												</div>
+											</div>
+										) : (
+											<div className="p-4 bg-muted/30 rounded-lg text-center">
+												<PackageIcon className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
+												<p className="text-muted-foreground text-sm">Belum ada data lisensi.</p>
+											</div>
+										)}
+									</CardContent>
+								</Card>
+							) : null}
 						</div>
-						<p className="text-xs text-muted-foreground break-all text-center">
-							{qrPreview.url}
-						</p>
-						<div className="flex flex-wrap items-center justify-center gap-2">
-							<Button type="button" className="gap-1.5" onClick={handleDownloadQr}>
-								<DownloadIcon className="size-3.5" />
-								<span>Unduh QR</span>
-							</Button>
-							<Button
-								type="button"
-								variant="outline"
-								className="gap-1.5"
-								onClick={() => handleCopyLink(qrPreview.url)}
-							>
-								<CopyIcon className="size-3.5" />
-								<span>Salin link</span>
-							</Button>
+					)}
+
+					<DialogFooter className="pt-6">
+						<Button type="button" variant="outline" onClick={() => onOpenChange?.(false)}>
+							Tutup
+						</Button>
+					</DialogFooter>
+				</DialogContent>
+			</Dialog>
+			<Dialog modal={false} open={qrDialogOpen} onOpenChange={handleQrDialogOpenChange}>
+				<DialogContent className="max-w-sm" showCloseButton>
+					<DialogHeader>
+						<DialogTitle>Kode QR</DialogTitle>
+						<DialogDescription>
+							Pindai atau unduh kode QR untuk {qrPreview?.label?.toLowerCase() || "tautan"}.
+						</DialogDescription>
+					</DialogHeader>
+					{qrPreview ? (
+						<div className="flex flex-col items-center gap-4">
+							<div className="rounded-lg bg-white p-4 shadow-sm">
+								<QRCode ref={qrSvgRef} value={qrPreview.url} size={220} />
+							</div>
+							<p className="text-xs text-muted-foreground break-all text-center">
+								{qrPreview.url}
+							</p>
+							<div className="flex flex-wrap items-center justify-center gap-2">
+								<Button type="button" className="gap-1.5" onClick={handleDownloadQr}>
+									<DownloadIcon className="size-3.5" />
+									<span>Unduh QR</span>
+								</Button>
+								<Button
+									type="button"
+									variant="outline"
+									className="gap-1.5"
+									onClick={() => handleCopyLink(qrPreview.url)}
+								>
+									<CopyIcon className="size-3.5" />
+									<span>Salin link</span>
+								</Button>
+							</div>
 						</div>
-					</div>
-				) : null}
-			</DialogContent>
-		</Dialog>
-	</>
+					) : null}
+				</DialogContent>
+			</Dialog>
+		</>
 	);
 }
 
