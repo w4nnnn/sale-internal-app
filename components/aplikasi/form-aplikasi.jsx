@@ -442,68 +442,68 @@ export function FormAplikasiDialog({
 		onChange("");
 	}, []);
 
-		const uploadFile = useCallback(
-			async ({ file, target, onChange, previousPath }) => {
-				if (!file) {
-					return;
+	const uploadFile = useCallback(
+		async ({ file, target, onChange, previousPath }) => {
+			if (!file) {
+				return;
+			}
+
+			const currentAppName = form.getValues("nama_app")?.trim();
+
+			if (!currentAppName) {
+				toast.error("Isi nama aplikasi terlebih dahulu sebelum mengunggah file.");
+				return;
+			}
+
+			const extension = file.name.split(".").pop()?.toLowerCase();
+			const expectedExtension = target === "android" ? "apk" : "ipa";
+
+			if (extension !== expectedExtension) {
+				toast.error(`File ${target === "android" ? "Android" : "iOS"} harus berformat .${expectedExtension}.`);
+				return;
+			}
+
+			const setUploading = target === "android" ? setIsUploadingAndroid : setIsUploadingIos;
+
+			setUploading(true);
+
+			try {
+				const formData = new FormData();
+				formData.append("file", file);
+				formData.append("appName", currentAppName);
+
+				if (previousPath && previousPath.trim()) {
+					formData.append("previousPath", previousPath.trim());
 				}
 
-				const currentAppName = form.getValues("nama_app")?.trim();
+				const response = await fetch("/api/uploads/aplikasi", {
+					method: "POST",
+					body: formData,
+				});
 
-				if (!currentAppName) {
-					toast.error("Isi nama aplikasi terlebih dahulu sebelum mengunggah file.");
-					return;
+				const payload = await response.json().catch(() => ({}));
+
+				if (!response.ok) {
+					throw new Error(payload?.message || "Gagal mengunggah file.");
 				}
 
-				const extension = file.name.split(".").pop()?.toLowerCase();
-				const expectedExtension = target === "android" ? "apk" : "ipa";
+				const filePath = payload?.data?.path;
 
-				if (extension !== expectedExtension) {
-					toast.error(`File ${target === "android" ? "Android" : "iOS"} harus berformat .${expectedExtension}.`);
-					return;
+				if (!filePath) {
+					throw new Error("Respons unggah tidak valid.");
 				}
 
-				const setUploading = target === "android" ? setIsUploadingAndroid : setIsUploadingIos;
-
-				setUploading(true);
-
-				try {
-					const formData = new FormData();
-					formData.append("file", file);
-					formData.append("appName", currentAppName);
-
-					if (previousPath && previousPath.trim()) {
-						formData.append("previousPath", previousPath.trim());
-					}
-
-					const response = await fetch("/api/uploads/aplikasi", {
-						method: "POST",
-						body: formData,
-					});
-
-					const payload = await response.json().catch(() => ({}));
-
-					if (!response.ok) {
-						throw new Error(payload?.message || "Gagal mengunggah file.");
-					}
-
-					const filePath = payload?.data?.path;
-
-					if (!filePath) {
-						throw new Error("Respons unggah tidak valid.");
-					}
-
-					onChange(filePath);
-					toast.success(`File ${target === "android" ? "Android" : "iOS"} berhasil diunggah.`);
-				} catch (error) {
-					const message = typeof error === "object" && error?.message ? error.message : "Gagal mengunggah file.";
-					toast.error(message);
-				} finally {
-					setUploading(false);
-				}
-			},
-			[form]
-		);
+				onChange(filePath);
+				toast.success(`File ${target === "android" ? "Android" : "iOS"} berhasil diunggah.`);
+			} catch (error) {
+				const message = typeof error === "object" && error?.message ? error.message : "Gagal mengunggah file.";
+				toast.error(message);
+			} finally {
+				setUploading(false);
+			}
+		},
+		[form]
+	);
 
 	const toNumberOrNull = (value) => {
 		if (!value) {
@@ -575,7 +575,7 @@ export function FormAplikasiDialog({
 
 	return (
 		<Dialog open={dialogOpen} onOpenChange={handleDialogChange}>
-			<DialogContent>
+			<DialogContent className="max-h-[85vh] overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
 				<DialogHeader>
 					<DialogTitle>{isEdit ? "Edit Aplikasi" : "Tambah Aplikasi"}</DialogTitle>
 					<DialogDescription>
@@ -641,15 +641,15 @@ export function FormAplikasiDialog({
 												value={field.value ?? ""}
 												onValueChange={field.onChange}
 												disabled={
-												isFetchingOptions || pelangganSelectOptions.length === 0
-											}
+													isFetchingOptions || pelangganSelectOptions.length === 0
+												}
 											>
 												<FormControl>
 													<SelectTrigger>
 														<SelectValue
 															placeholder={
 																isFetchingOptions ? "Memuat pelanggan..." : "Pilih pelanggan"
-														}
+															}
 														/>
 													</SelectTrigger>
 												</FormControl>
@@ -688,7 +688,7 @@ export function FormAplikasiDialog({
 														<SelectValue
 															placeholder={
 																isFetchingOptions ? "Memuat user..." : "Pilih penanggung jawab"
-														}
+															}
 														/>
 													</SelectTrigger>
 												</FormControl>
@@ -858,7 +858,7 @@ export function FormAplikasiDialog({
 															type="button"
 															variant="ghost"
 															size="sm"
-																							onClick={() => handleClearUploadedFile(field.onChange)}
+															onClick={() => handleClearUploadedFile(field.onChange)}
 															disabled={isUploadingIos}
 														>
 															Hapus
@@ -873,30 +873,30 @@ export function FormAplikasiDialog({
 														accept=".ipa"
 														disabled={isUploadingIos}
 														onChange={(event) => {
-																									const files = event.target.files;
+															const files = event.target.files;
 
-																									if (!files || files.length === 0) {
-																										return;
-																									}
+															if (!files || files.length === 0) {
+																return;
+															}
 
-																									if (files.length > 1) {
-																										toast.error("Unggah hanya satu file.");
-																										event.target.value = "";
-																										return;
-																									}
+															if (files.length > 1) {
+																toast.error("Unggah hanya satu file.");
+																event.target.value = "";
+																return;
+															}
 
-																									const selected = files[0];
+															const selected = files[0];
 
-																									if (selected) {
-																										uploadFile({
-																											file: selected,
-																											target: "ios",
-																											onChange: field.onChange,
-																											previousPath: field.value,
-																										});
-																									}
+															if (selected) {
+																uploadFile({
+																	file: selected,
+																	target: "ios",
+																	onChange: field.onChange,
+																	previousPath: field.value,
+																});
+															}
 
-																									event.target.value = "";
+															event.target.value = "";
 														}}
 													/>
 													{isUploadingIos ? (
@@ -935,7 +935,7 @@ export function FormAplikasiDialog({
 															type="button"
 															variant="ghost"
 															size="sm"
-																							onClick={() => handleClearUploadedFile(field.onChange)}
+															onClick={() => handleClearUploadedFile(field.onChange)}
 															disabled={isUploadingAndroid}
 														>
 															Hapus
@@ -950,30 +950,30 @@ export function FormAplikasiDialog({
 														accept=".apk"
 														disabled={isUploadingAndroid}
 														onChange={(event) => {
-																									const files = event.target.files;
+															const files = event.target.files;
 
-																									if (!files || files.length === 0) {
-																										return;
-																									}
+															if (!files || files.length === 0) {
+																return;
+															}
 
-																									if (files.length > 1) {
-																										toast.error("Unggah hanya satu file.");
-																										event.target.value = "";
-																										return;
-																									}
+															if (files.length > 1) {
+																toast.error("Unggah hanya satu file.");
+																event.target.value = "";
+																return;
+															}
 
-																									const selected = files[0];
+															const selected = files[0];
 
-																									if (selected) {
-																										uploadFile({
-																											file: selected,
-																											target: "android",
-																											onChange: field.onChange,
-																											previousPath: field.value,
-																										});
-																									}
+															if (selected) {
+																uploadFile({
+																	file: selected,
+																	target: "android",
+																	onChange: field.onChange,
+																	previousPath: field.value,
+																});
+															}
 
-																									event.target.value = "";
+															event.target.value = "";
 														}}
 													/>
 													{isUploadingAndroid ? (

@@ -11,8 +11,9 @@ export const metadata = {
   creator: "Sale Internal Team",
   publisher: "Sale Internal App",
   robots: "noindex, nofollow", // Since it's internal
-  viewport: "width=device-width, initial-scale=1",
 };
+
+export const viewport = "width=device-width, initial-scale=1";
 
 export default function RootLayout({ children }) {
   return (
