@@ -20,43 +20,43 @@ import {
 	DialogTitle,
 } from "@/components/ui/dialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";export function DetailUserDialog({ open, onOpenChange, user }) {
-  const [licenses, setLicenses] = useState([]);
-  const [isLoadingLicenses, setIsLoadingLicenses] = useState(false);
+import { Badge } from "@/components/ui/badge"; export function DetailUserDialog({ open, onOpenChange, user }) {
+	const [licenses, setLicenses] = useState([]);
+	const [isLoadingLicenses, setIsLoadingLicenses] = useState(false);
 
-  useEffect(() => {
-    if (!open || !user?.user_id) {
-      setLicenses([]);
-      return;
-    }
+	useEffect(() => {
+		if (!open || !user?.user_id) {
+			setLicenses([]);
+			return;
+		}
 
-    const fetchLicenses = async () => {
-      setIsLoadingLicenses(true);
-      try {
-        const response = await fetch(`/api/users/${user.user_id}/licenses`);
-        if (!response.ok) {
-          throw new Error("Gagal memuat lisensi.");
-        }
-        const data = await response.json();
-        setLicenses(data?.data || []);
-      } catch (error) {
-        toast.error(error.message);
-        setLicenses([]);
-      } finally {
-        setIsLoadingLicenses(false);
-      }
-    };
+		const fetchLicenses = async () => {
+			setIsLoadingLicenses(true);
+			try {
+				const response = await fetch(`/api/users/${user.user_id}/licenses`);
+				if (!response.ok) {
+					throw new Error("Gagal memuat lisensi.");
+				}
+				const data = await response.json();
+				setLicenses(data?.data || []);
+			} catch (error) {
+				toast.error(error.message);
+				setLicenses([]);
+			} finally {
+				setIsLoadingLicenses(false);
+			}
+		};
 
-    fetchLicenses();
-  }, [open, user?.user_id]);
+		fetchLicenses();
+	}, [open, user?.user_id]);
 
-  if (!user) {
-    return null;
-  }
+	if (!user) {
+		return null;
+	}
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+			<DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
 				<DialogHeader className="pb-4">
 					<div className="flex items-center gap-3">
 						<div className="p-2 bg-primary/10 rounded-lg">

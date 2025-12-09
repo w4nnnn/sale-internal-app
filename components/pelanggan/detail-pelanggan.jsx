@@ -57,7 +57,7 @@ export function DetailPelangganDialog({ open, onOpenChange, pelanggan }) {
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+			<DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
 				<DialogHeader className="pb-4">
 					<div className="flex items-center gap-3">
 						<div className="p-2 bg-primary/10 rounded-lg">

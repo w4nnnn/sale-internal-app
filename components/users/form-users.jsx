@@ -271,7 +271,7 @@ export function FormUserDialog({ onSuccess, open, onOpenChange, mode = "create",
 
 	return (
 		<Dialog open={dialogOpen} onOpenChange={handleDialogChange}>
-			<DialogContent>
+			<DialogContent className="max-h-[85vh] overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
 				<DialogHeader>
 					<DialogTitle>{isEdit ? "Edit Pengguna" : "Tambah Pengguna"}</DialogTitle>
 					<DialogDescription>

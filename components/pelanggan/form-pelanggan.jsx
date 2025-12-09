@@ -199,7 +199,7 @@ export function FormPelangganDialog({ onSuccess, open, onOpenChange, mode = "cre
 
 	return (
 		<Dialog open={dialogOpen} onOpenChange={handleDialogChange}>
-			<DialogContent>
+			<DialogContent className="max-h-[85vh] overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
 				<DialogHeader>
 					<DialogTitle>{isEdit ? "Edit Pelanggan" : "Tambah Pelanggan"}</DialogTitle>
 					<DialogDescription>
